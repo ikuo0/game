@@ -139,8 +139,16 @@ type FallingInertia struct {
 	Inertia 
 }
 
-func (me *FallingInertia) Jump() {
-	me.Up.Accel(me.Up.MaxPower)
+func (me *FallingInertia) Reset() {
+	me.Left.Reset()
+	me.Right.Reset()
+	me.Up.Reset()
+	me.Down.Reset()
+}
+
+func (me *FallingInertia) Jump(power float64) {
+	//me.Up.Accel(me.Up.MaxPower)
+	me.Up.Accel(power)
 	me.Down.Reset()
 }
 
@@ -171,11 +179,14 @@ func (me *FallingInertia) Fall() {
 	}
 }
 
-func NewFallingInertia(rad radian.Radian, p, a, m, jumpPower, gravity float64) (*FallingInertia) {
+var MaxGravity = float64(16)
+var MaxJumpPower = float64(16)
+
+func NewFallingInertia(rad radian.Radian, p, a, m float64) (*FallingInertia) {
 	l := RateScalar(0, a, m)
 	r := RateScalar(0, a, m)
-	u := RateScalar(0, 1, jumpPower)
-	d := RateScalar(0, 1, gravity)
+	u := RateScalar(0, 1, MaxJumpPower)
+	d := RateScalar(0, 1, MaxGravity)
 
 	c := math.Cos(float64(rad))
 	if c > 0 {

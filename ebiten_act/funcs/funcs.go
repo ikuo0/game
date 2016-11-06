@@ -9,6 +9,23 @@ import (
 )
 
 //########################################
+//# FaceDirection
+//########################################
+type FaceDirection int
+const (
+	FaceLeft FaceDirection = iota + 1
+	FaceRight
+)
+
+func (me FaceDirection) String() (string) {
+	switch(me) {
+		case FaceLeft: return "FaceLeft"
+		case FaceRight: return "FaceRight"
+	}
+	return "FaceUnknown"
+}
+
+//########################################
 //# Hit Check
 //########################################
 type WallStatus int
@@ -136,12 +153,7 @@ func NewFallingRects(width, height, adjustX, adjustY int) (*FallingRects) {
 //########################################
 //# Enemy Occure
 //########################################
-type EnemyDirection int
-const (
-	EnemyLeft  EnemyDirection = iota + 1
-	EnemyRight
-)
 type EnemyConfig struct {
 	Point     fig.FloatPoint
-	Direction EnemyDirection
+	Direction FaceDirection
 }

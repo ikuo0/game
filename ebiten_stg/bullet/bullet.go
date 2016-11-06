@@ -3,6 +3,7 @@ package bullet
 
 import (
 	"github.com/ikuo0/game/ebiten_stg/eventid"
+	"github.com/ikuo0/game/lib/action"
 	"github.com/ikuo0/game/lib/event"
 	"github.com/ikuo0/game/lib/anime"
 	"github.com/ikuo0/game/lib/fig"
@@ -88,7 +89,7 @@ func (me *Bullet1) HitRects() ([]fig.Rect) {
 	return []fig.Rect{{x, y, x + 26, y + 26}}
 }
 
-func (me *Bullet1) Hit() {
+func (me *Bullet1) Hit(obj action.Object) {
 	me.Endurance--
 }
 

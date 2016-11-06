@@ -22,19 +22,21 @@ const (
 	Left
 	Right
 	Shot
-	Shield
+	Jump
+	Restart
 	Submit
 	Cancel
 )
 
 func (me MenuId)  Bits() (ginput.InputBits) {
 	switch me {
-		case Up:     return ginput.Up
-		case Down:   return ginput.Down
-		case Left:   return ginput.Left
-		case Right:  return ginput.Right
-		case Shot:   return ginput.Key1
-		case Shield: return ginput.Key2
+		case Up:      return ginput.Up
+		case Down:    return ginput.Down
+		case Left:    return ginput.Left
+		case Right:   return ginput.Right
+		case Shot:    return ginput.Key1
+		case Jump:    return ginput.Key2
+		case Restart: return ginput.Key3
 	}
 	return 0
 }
@@ -79,12 +81,13 @@ func (me *Items) CreateItem(menuId MenuId, bits ginput.InputBits, prefix string,
 func (me *Items) Update(maps ginput.Keymaps) {
 	items := []Item{}
 
-	items = append(items, me.CreateItem(Up,     ginput.Up, "Up", maps))
-	items = append(items, me.CreateItem(Down,   ginput.Down, "Down", maps))
-	items = append(items, me.CreateItem(Left,   ginput.Left, "Left", maps))
-	items = append(items, me.CreateItem(Right,  ginput.Right, "Right", maps))
-	items = append(items, me.CreateItem(Shot,   ginput.Key1, "Shot", maps))
-	items = append(items, me.CreateItem(Shield, ginput.Key2, "Shield", maps))
+	items = append(items, me.CreateItem(Up,      ginput.Up, "Up", maps))
+	items = append(items, me.CreateItem(Down,    ginput.Down, "Down", maps))
+	items = append(items, me.CreateItem(Left,    ginput.Left, "Left", maps))
+	items = append(items, me.CreateItem(Right,   ginput.Right, "Right", maps))
+	items = append(items, me.CreateItem(Shot,    ginput.Key1, "Shot", maps))
+	items = append(items, me.CreateItem(Jump,    ginput.Key2, "Jump", maps))
+	items = append(items, me.CreateItem(Restart, ginput.Key3, "Restart", maps))
 
 	items = append(items, Item {
 		Id:   Submit,
@@ -214,7 +217,7 @@ func (me *KeyConfig) Main(screen *ebiten.Image) (bool) {
 		} else if me.Pushed.Check(ginput.Key1) {
 			menuId := MenuId(me.Menu.Value())
 			switch menuId {
-				case Up, Down, Left, Right, Shot, Shield:
+				case Up, Down, Left, Right, Shot, Jump, Restart:
 					me.Chosing = true
 					me.Chose = Chose{}
 					me.Soundset.MenuSubmit()

@@ -2,6 +2,7 @@
 package explosion
 
 import (
+	"github.com/ikuo0/game/lib/action"
 	"github.com/ikuo0/game/lib/event"
 	"github.com/ikuo0/game/lib/anime"
 	"github.com/ikuo0/game/lib/fig"
@@ -48,7 +49,7 @@ func (me *Explosion) HitRects() ([]fig.Rect) {
 	return nil
 }
 
-func (me *Explosion) Hit() {
+func (me *Explosion) Hit(obj action.Object) {
 }
 
 func (me *Explosion) Update(trigger event.Trigger) {

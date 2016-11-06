@@ -112,7 +112,10 @@ func (me *Title) Dispose() {
 func (me *Title) ReturnValue() (scene.Parameter) {
 	switch me.SelectedId {
 		case Start:
-			return []string{"stage1"}
+			gameStatus := global.GameStatus{}
+			gameStatus.Init()
+			global.SetGameStatus(gameStatus)
+			return []string{"stage"}
 
 		case KeyConfig:
 			return []string{"keyconfig"}

@@ -2,6 +2,7 @@
 package vortex
 
 import (
+	"github.com/ikuo0/game/lib/action"
 	"github.com/ikuo0/game/lib/event"
 	"github.com/ikuo0/game/lib/script"
 	"github.com/ikuo0/game/lib/fig"
@@ -60,7 +61,7 @@ func (me *Vortex) HitRects() ([]fig.Rect) {
 	return []fig.Rect{{x, y, x + Width, y + Height}}
 }
 
-func (me *Vortex) Hit() {
+func (me *Vortex) Hit(obj action.Object) {
 	me.Taken = true
 }
 

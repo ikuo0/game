@@ -5,13 +5,12 @@ import (
 	"github.com/ikuo0/game/ebiten_stg/effect"
 	"github.com/ikuo0/game/ebiten_stg/eventid"
 	"github.com/ikuo0/game/ebiten_stg/world"
-	"github.com/ikuo0/game/lib/anime"
+	"github.com/ikuo0/game/lib/action"
 	"github.com/ikuo0/game/lib/event"
 	"github.com/ikuo0/game/lib/fig"
 	"github.com/ikuo0/game/lib/ginput"
 	"github.com/ikuo0/game/lib/kcmd"
 	"github.com/ikuo0/game/lib/move"
-	"github.com/ikuo0/game/lib/orig"
 	"github.com/ikuo0/game/lib/radian"
 	"github.com/ikuo0/game/lib/script"
 	"github.com/ikuo0/game/lib/sprites"
@@ -20,20 +19,6 @@ import (
 	//"math"
 	//"fmt"
 )
-
-type Interface interface {
-	Point() (fig.FloatPoint)
-	Direction() (radian.Radian)
-	Update(trigger event.Trigger)
-	Vanish()
-	IsVanish() (bool)
-	Src() (x0, y0, x1, y1 int)
-	Dst() (x0, y0, x1, y1 int)
-	SetPoint(fig.FloatPoint)
-	HitRects() ([]fig.Rect)
-	Hit()
-	SetInput(ginput.InputBits)
-}
 
 var SrcSlopeLeft2  = fig.Rect {218, 0, 218 + 32, 36}
 var SrcSlopeLeft1  = fig.Rect {250, 0, 250 + 32, 36}
@@ -155,7 +140,7 @@ func (me *Player) HitRects() ([]fig.Rect) {
 	}
 }
 
-func (me *Player) Hit() {
+func (me *Player) Hit(obj action.Object) {
 	me.Endurance--
 	if me.Endurance <= 0 {
 		me.Dead = true
@@ -193,53 +178,35 @@ func NewPlayer(pt fig.FloatPoint) (*Player) {
 
 
 //########################################
-//# Players
+//# Objects
 //########################################
-type Players struct {
-	Objs     []Interface
+type Interface interface {
+	Point() (fig.FloatPoint)
+	Direction() (radian.Radian)
+	Update(trigger event.Trigger)
+	Vanish()
+	IsVanish() (bool)
+	Src() (x0, y0, x1, y1 int)
+	Dst() (x0, y0, x1, y1 int)
+	SetPoint(fig.FloatPoint)
+	HitRects() ([]fig.Rect)
+	Hit(action.Object)
+	SetInput(ginput.InputBits)
 }
 
-func (me *Players) Len() (int) {
-	return len(me.Objs)
+type Objects struct {
+	*sprites.Objects
 }
-func (me *Players) Src(i int) (x0, y0, x1, y1 int) {
-	return me.Objs[i].Src()
+func (me *Objects) Get(i int) (Interface) {
+	return me.Objs[i].(Interface)
 }
-func (me *Players) Dst(i int) (x0, y0, x1, y1 int) {
-	return me.Objs[i].Dst()
+func (me *Objects) SetInput(i int, bits ginput.InputBits) {
+	me.Get(i).SetInput(bits)
 }
-func (me *Players) Update(i int, trigger event.Trigger) {
-	me.Objs[i].Update(trigger)
+func (me *Objects) SetPoint(i int, pt fig.FloatPoint) {
+	me.Get(i).SetPoint(pt)
 }
-func (me *Players) Origin(i int) (orig.Interface) {
-	return me.Objs[i]
-}
-func (me *Players) HitRects(i int) ([]fig.Rect) {
-	return me.Objs[i].HitRects()
-}
-
-func (me *Players) Hit(i int) {
-	me.Objs[i].Hit()
-}
-func (me *Players) Vanish(i int) {
-	me.Objs[i].Vanish()
-}
-func (me *Players) Clean(i int) {
-	newObjs := []Interface{}
-	for _, v := range me.Objs {
-		if !v.IsVanish() {
-			newObjs = append(newObjs, v)
-		}
-	}
-	me.Objs = newObjs
-}
-func (me *Players) Options() (*ebiten.DrawImageOptions) {
-	return &ebiten.DrawImageOptions {
-		ImageParts: me,
-	}
-}
-
-func (me *Players) DrawOption(i int) (*ebiten.DrawImageOptions) {
+func (me *Objects) DrawOption(i int) (*ebiten.DrawImageOptions) {
 	sx0, sy0, sx1, sy1 := me.Src(i)
 	dx0, dy0, dx1, dy1 := me.Dst(i)
 	opt := ebiten.DrawImageOptions {
@@ -253,184 +220,9 @@ func (me *Players) DrawOption(i int) (*ebiten.DrawImageOptions) {
 	opt.GeoM.Translate(pt.X, pt.Y)
 	return &opt
 }
-
-func (me *Players) Occure(objIf Interface) {
-	me.Objs = append(me.Objs, objIf)
-}
-
-func (me *Players) SetInput(i int, bits ginput.InputBits) {
-	me.Objs[i].SetInput(bits)
-}
-func (me *Players) SetPoint(i int, pt fig.FloatPoint) {
-	me.Objs[i].SetPoint(pt)
-}
-
-func NewPlayers() (*Players) {
-	return &Players {}
-}
-
-//########################################
-//# Shot
-//########################################
-var SrcShot = fig.Rect {0, 66, 0 + 60, 66 + 66}
-type Shot struct {
-	fig.FloatPoint
-	Vanished   bool
-	V          *move.Constant
-	Endurance  int
-}
-
-func (me *Shot) Point() (fig.FloatPoint) {
-	return me.FloatPoint
-}
-
-func (me *Shot) Direction() (radian.Radian) {
-	return radian.Up()
-}
-
-func (me *Shot) Update(trigger event.Trigger) {
-	p := me.V.Power()
-	me.X += p.X
-	me.Y += p.Y
-}
-
-func (me *Shot) Vanish() {
-	me.Vanished = true
-}
-func (me *Shot) IsVanish() (bool) {
-	return me.Vanished
-}
-func (me *Shot) Src() (x0, y0, x1, y1 int) {
-	return SrcShot.Left, SrcShot.Top, SrcShot.Right, SrcShot.Bottom
-}
-func (me *Shot) Dst() (x0, y0, x1, y1 int) {
-	x, y := int(me.X) - 24, int(me.Y) - 30
-	return x, y, x + 48, y + 60
-}
-func (me *Shot) SetPoint(pt fig.FloatPoint) {
-	me.FloatPoint = pt
-}
-func (me *Shot) HitRects() ([]fig.Rect) {
-	if me.Endurance <= 0 {
-		return nil
-	} else {
-		x, y := int(me.X) - 24, int(me.Y) - 30
-		return []fig.Rect{{x, y, x + 48, y + 60}}
-	}
-}
-
-func (me *Shot) Hit() {
-	me.Endurance--
-	me.Vanish()
-}
-
-func (me *Shot) Stack() (*script.Stack) {
-	return nil
-}
-
-func NewShot(pt fig.FloatPoint) (*Shot) {
-	return &Shot{
-		FloatPoint: pt,
-		V:          move.NewConstant(radian.Up(), 32),
-		Endurance:  6,
-	}
-}
-
-//########################################
-//# Shield
-//########################################
-var SrcSheld = fig.Rect {64, 64, 64 + 320, 64 + 320}
-type Sheld struct {
-	fig.FloatPoint
-	Vanished   bool
-	Anime     *anime.Frames
-	V          *move.Accel
-}
-
-func (me *Sheld) Point() (fig.FloatPoint) {
-	return me.FloatPoint
-}
-
-func (me *Sheld) Direction() (radian.Radian) {
-	return radian.Up()
-}
-
-func (me *Sheld) Update(trigger event.Trigger) {
-	me.V.Accel()
-	p := me.V.Power()
-	me.X += p.X
-	me.Y += p.Y
-	me.Anime.Update()
-}
-
-func (me *Sheld) Vanish() {
-	me.Vanished = true
-}
-func (me *Sheld) IsVanish() (bool) {
-	return me.Vanished
-}
-func (me *Sheld) Src() (x0, y0, x1, y1 int) {
-	return SrcSheld.Left, SrcSheld.Top, SrcSheld.Right, SrcSheld.Bottom
-}
-func (me *Sheld) Dst() (x0, y0, x1, y1 int) {
-// 96
-// 16 + 80
-	width := me.Anime.Index() * 15 + 36
-	adjust := width / 2
-	x, y := int(me.X) - adjust, int(me.Y) - adjust
-	return x, y, x + width, y + width
-}
-func (me *Sheld) SetPoint(pt fig.FloatPoint) {
-	me.FloatPoint = pt
-}
-func (me *Sheld) HitRects() ([]fig.Rect) {
-	if me.IsVanish() {
-		return nil
-	} else {
-		x, y := int(me.X) - 48, int(me.Y) - 48
-		return []fig.Rect{{x, y, x + 96, y + 96}}
-	}
-}
-
-func (me *Sheld) Hit() {
-}
-
-func (me *Sheld) Pushed() {
-	me.V.Speed.MaxPower += 0.2
-}
-
-func (me *Sheld) Stack() (*script.Stack) {
-	return nil
-}
-
-func NewSheld(pt fig.FloatPoint) (*Sheld) {
-	return &Sheld{
-		FloatPoint: pt,
-		Anime:      anime.NewFrames(8, 7, 3, 2, 8),
-		V:          move.NewAccel(radian.Up(), 0.1, 0.1, 0.7),
-	}
-}
-
-
-type ShieldInterface interface {
-	sprites.Object
-	Pushed()
-}
-
-type Shields struct {
-	*sprites.Objects
-}
-
-func (me *Shields) HitRects(i int) ([]fig.Rect) {
-	return me.Objects.Objs[i].HitRects()
-}
-
-func (me *Shields) Pushed(i int) {
-	me.Objs[i].(ShieldInterface).Pushed()
-}
-
-func NewShelds() (*Shields) {
-	return &Shields {
+func NewObjects() (*Objects) {
+	return &Objects {
 		Objects: sprites.NewObjects(),
 	}
 }
+

@@ -5,24 +5,19 @@
 import (
 	"github.com/ikuo0/game/ebiten_act/eventid"
 	"github.com/ikuo0/game/ebiten_act/funcs"
-	"github.com/ikuo0/game/lib/event"
 	"github.com/ikuo0/game/ebiten_act/world"
-	"github.com/ikuo0/game/lib/script"
+	"github.com/ikuo0/game/lib/action"
 	"github.com/ikuo0/game/lib/anime"
+	"github.com/ikuo0/game/lib/event"
 	"github.com/ikuo0/game/lib/fig"
 	"github.com/ikuo0/game/lib/ginput"
 	"github.com/ikuo0/game/lib/kcmd"
 	"github.com/ikuo0/game/lib/move"
 	"github.com/ikuo0/game/lib/radian"
+	"github.com/ikuo0/game/lib/script"
 	"github.com/ikuo0/game/lib/sprites"
 	"github.com/ikuo0/game/lib/timer"
 	//"fmt"
-)
-
-type FaceDirection int
-const (
-	FaceLeft = iota + 1
-	FaceRight
 )
 
 const Width = 48
@@ -42,14 +37,14 @@ var JumpCommand    = []ginput.InputBits {ginput.Nkey2, ginput.Key2}
 
 type Gun struct {
 	fig.FloatPoint
-	FaceDirection FaceDirection
+	FaceDirection funcs.FaceDirection
 }
 func (me *Gun) Point() (fig.FloatPoint) {
 	return me.FloatPoint
 }
 
 func (me *Gun) Direction() (radian.Radian) {
-	if me.FaceDirection == FaceLeft {
+	if me.FaceDirection == funcs.FaceLeft {
 		return radian.Left()
 	} else {
 		return radian.Right()
@@ -63,32 +58,31 @@ func (me *Gun) SetPoint(pt fig.FloatPoint) {
 
 func (me *Gun) SetLeft(pt fig.FloatPoint) {
 	me.SetPoint(pt)
-	me.FaceDirection = FaceLeft
+	me.FaceDirection = funcs.FaceLeft
 }
 
 func (me *Gun) SetRight(pt fig.FloatPoint) {
 	me.SetPoint(pt)
-	me.FaceDirection = FaceRight
+	me.FaceDirection = funcs.FaceRight
 }
 
 type Player struct {
 	fig.FloatPoint
-	FaceDirection FaceDirection
-	Vanished   bool
-	CurrentSrc fig.Rect
-	V          *move.FallingInertia
-	InputBits  ginput.InputBits
-	Kbuffer    *kcmd.Buffer
-	FireFrame  int
-	Endurance  int
-	Dead       bool
-	Invisible  *timer.Frame
-	Anime      *anime.Frames
-	HitWalls   []fig.Rect
-	FrameCounter int
-	FallingRects *funcs.FallingRects
-	CanJump      bool
-	Gun          Gun
+	FaceDirection funcs.FaceDirection
+	Vanished      bool
+	Dead          bool
+	CanJump       bool
+	Beaten        bool
+	BeatenTimer   *timer.Frame
+	CurrentSrc    fig.Rect
+	V             *move.FallingInertia
+	InputBits     ginput.InputBits
+	Kbuffer       *kcmd.Buffer
+	Endurance     int
+	Anime         *anime.Frames
+	FrameCounter  int
+	FallingRects  *funcs.FallingRects
+	Gun           Gun
 }
 
 func (me *Player) Point() (fig.FloatPoint) {
@@ -110,6 +104,12 @@ func (me *Player) Update(trigger event.Trigger) {
 	} else {
 
 		bits := me.InputBits
+		me.Kbuffer.Update(bits)
+
+		if me.Beaten && me.BeatenTimer.Up() {
+			//
+			me.Beaten = false
+		}
 
 		if bits.And(ginput.Left) {
 			me.V.Radian = radian.Left()
@@ -121,15 +121,14 @@ func (me *Player) Update(trigger event.Trigger) {
 			me.V.Accel()
 			me.Anime.Update()
 			if bits.Or(ginput.Left) {
-				me.FaceDirection = FaceLeft
+				me.FaceDirection = funcs.FaceLeft
 			} else {
-				me.FaceDirection = FaceRight
+				me.FaceDirection = funcs.FaceRight
 			}
 		}
 
-		me.Kbuffer.Update(bits)
 		if kcmd.Check(ShotCommand, me.Kbuffer, 1) {
-			if me.FaceDirection == FaceLeft {
+			if me.FaceDirection == funcs.FaceLeft {
 				me.Gun.SetLeft(me.FloatPoint)
 			} else {
 				me.Gun.SetRight(me.FloatPoint)
@@ -138,11 +137,11 @@ func (me *Player) Update(trigger event.Trigger) {
 		}
 
 		if me.CanJump && kcmd.Check(JumpCommand, me.Kbuffer, 1) {
-			me.V.Jump()
+			me.V.Jump(17)
 		}
 
 		me.V.Fall()
-		me.V.Chafe(0.2)
+		me.V.Chafe(0.4)
 		p := me.V.Power()
 		me.X += p.X
 		me.Y += p.Y
@@ -158,7 +157,7 @@ func (me *Player) IsVanish() (bool) {
 }
 func (me *Player) Src() (x0, y0, x1, y1 int) {
 	idx := me.Anime.Index()
-	if me.FaceDirection == FaceLeft {
+	if me.FaceDirection == funcs.FaceLeft {
 		idx += 2
 	}
 	r := ImageSources[idx]
@@ -180,15 +179,25 @@ func (me *Player) HitRects() ([]fig.Rect) {
 	return []fig.Rect{{x, y, x + Width, y + Height}}
 }
 
-func (me *Player) Hit() {
-}
-func (me *Player) HitWall(rects []fig.Rect) {
-	me.HitWalls = append(me.HitWalls, rects...)
-	//me.HitWalls = append(rects, me.HitWalls...)
+func (me *Player) Hit(origin action.Object) {
+	if me.Beaten {
+	} else {
+		me.Beaten = true
+		me.BeatenTimer.Start(60)
+		me.V.Jump(13)
+		if origin.Point().X > me.X {
+			me.V.Left.Accel(me.V.Left.MaxPower)
+		} else {
+			me.V.Right.Accel(me.V.Right.MaxPower)
+		}
+	}
 }
 
-func (me *Player) Expel() {
-	pt, status := me.FallingRects.HitWall(me.FloatPoint.ToInt(), me.V.Power(), me.HitWalls)
+func (me *Player) HitWall(origin action.Object) {
+}
+
+func (me *Player) Expel(hitWalls []fig.Rect) {
+	pt, status := me.FallingRects.HitWall(me.FloatPoint.ToInt(), me.V.Power(), hitWalls)
 
 	if (status & funcs.WallTop) != 0 {
 		me.V.JumpCancel()
@@ -210,7 +219,6 @@ func (me *Player) Expel() {
 	}
 
 	me.FloatPoint = pt.ToFloat()
-	me.HitWalls = nil
 }
 
 func (me *Player) Stack() (*script.Stack) {
@@ -225,12 +233,12 @@ func New(pt fig.FloatPoint) (*Player) {
 
 	return &Player{
 		FloatPoint: pt,
-		V:          move.NewFallingInertia(radian.Right(), 0, 0.7, 7, 17.5, 16),
+		V:          move.NewFallingInertia(radian.Right(), 0, 0.7, 7),
 		Kbuffer:    &kcmd.Buffer{},
 		Endurance:  100,
-		Invisible:  timer.NewFrame(180),
 		Anime:      anime.NewFrames(8, 8),
 		FallingRects: funcs.NewFallingRects(hitWidth, hitHeight, hitAdjustX, hitAdjustY),
+		BeatenTimer:  timer.NewFrame(0),
 	}
 }
 
@@ -238,27 +246,33 @@ func New(pt fig.FloatPoint) (*Player) {
 //# Objects
 //########################################
 type Interface interface {
-	sprites.Object
+	action.Object
 	SetPoint(fig.FloatPoint)
-	HitWall([]fig.Rect)
-	Expel()
+	HitWall(action.Object)
+	Expel([]fig.Rect)
 	SetInput(ginput.InputBits)
 }
+
 type Objects struct {
 	*sprites.Objects
 }
+
 func (me *Objects) Get(i int) (Interface) {
 	return me.Objs[i].(Interface)
 }
-func (me *Objects) HitWall(i int, rects []fig.Rect) {
-	me.Get(i).HitWall(rects)
+
+func (me *Objects) HitWall(i int, obj action.Object) {
+	me.Get(i).HitWall(obj)
 }
-func (me *Objects) Expel(i int) {
-	me.Get(i).Expel()
+
+func (me *Objects) Expel(i int, hitWalls []fig.Rect) {
+	me.Get(i).Expel(hitWalls)
 }
+
 func (me *Objects) SetInput(i int, bits ginput.InputBits) {
 	me.Get(i).SetInput(bits)
 }
+
 func (me *Objects) SetPoint(i int, pt fig.FloatPoint) {
 	me.Get(i).SetPoint(pt)
 }

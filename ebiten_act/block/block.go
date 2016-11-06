@@ -4,12 +4,14 @@ package block
 import (
 	"github.com/ikuo0/game/ebiten_act/eventid"
 	"github.com/ikuo0/game/ebiten_act/funcs"
+	"github.com/ikuo0/game/lib/action"
 	"github.com/ikuo0/game/lib/event"
 	"github.com/ikuo0/game/lib/script"
 	"github.com/ikuo0/game/lib/fig"
 	"github.com/ikuo0/game/lib/move"
 	"github.com/ikuo0/game/lib/radian"
 	"github.com/ikuo0/game/lib/timer"
+	//"fmt"
 	"math/rand"
 )
 
@@ -60,7 +62,7 @@ func (me *Block) HitRects() ([]fig.Rect) {
 	return []fig.Rect{{x, y, x + 32, y + 32}}
 }
 
-func (me *Block) Hit() {
+func (me *Block) Hit(obj action.Object) {
 }
 
 func (me *Block) Stack() (*script.Stack) {
@@ -101,16 +103,16 @@ func (me *OccureBlock) Update(trigger event.Trigger) {
 			me.Timer.Start(me.Config.Span)
 		}()
 
-		d := funcs.EnemyDirection(0)
+		d := funcs.FaceDirection(0)
 		if me.Config.OccureDirection == OccureLeft {
-			d = funcs.EnemyLeft
+			d = funcs.FaceLeft
 		} else if me.Config.OccureDirection == OccureRight {
-			d = funcs.EnemyRight
+			d = funcs.FaceRight
 		} else {
 			if rand.Intn(2) == 0 {
-				d = funcs.EnemyLeft
+				d = funcs.FaceLeft
 			} else {
-				d = funcs.EnemyRight
+				d = funcs.FaceRight
 			}
 		}
 		setting := funcs.EnemyConfig {

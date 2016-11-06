@@ -10,7 +10,10 @@ import (
 	"github.com/ikuo0/game/ebiten_stg/player"
 	"github.com/ikuo0/game/ebiten_stg/instrument"
 	"github.com/ikuo0/game/ebiten_stg/result"
+	"github.com/ikuo0/game/ebiten_stg/sheld"
+	"github.com/ikuo0/game/ebiten_stg/shot"
 	"github.com/ikuo0/game/ebiten_stg/world"
+	"github.com/ikuo0/game/lib/action"
 	"github.com/ikuo0/game/lib/event"
 	"github.com/ikuo0/game/lib/fig"
 	"github.com/ikuo0/game/lib/ginput"
@@ -66,14 +69,14 @@ func NewSounds() (*Sounds) {
 type Stage1 struct {
 	KeyConfig       *global.KeyConfigSt
 
-	Player          *player.Players
+	Player          *player.Objects
 	PlayerImage     *ebiten.Image
 	PlayerEntity    *player.Player
 
 	Shot            *sprites.Objects
 	ShotImage       *ebiten.Image
 
-	Sheld           *player.Shields
+	Sheld           *sheld.Objects
 	SheldImage      *ebiten.Image
 
 	Heli1           *sprites.Objects
@@ -159,22 +162,22 @@ func (me *Stage1) Update() {
 		//bits := ginput.Standard()
 		bits := ginput.Bits(ginput.Values(), me.KeyConfig.Maps)
 
-		sprites.SetInput(bits, me.Player)
+		action.SetInput(bits, me.Player)
 
-		sprites.Update(me, me.Heli1, me.Heli2, me.Aide1, me.Aide2, me.Boss1, me.Bullet1, me.Player, me.Shot, me.Sheld, me.Vanishing1, me.Explosion1)
-		sprites.HitCheck(me.Shot, me.Heli1)
-		sprites.HitCheck(me.Shot, me.Heli2)
-		sprites.HitCheck(me.Shot, me.Aide1)
-		sprites.HitCheck(me.Shot, me.Aide2)
-		sprites.HitCheck(me.Shot, me.Boss1)
-		sprites.HitCheck(me.Bullet1, me.Sheld)
-		sprites.HitCheck(me.Player, me.Bullet1)
-		sprites.HitCheck(me.Player, me.Heli1)
-		sprites.HitCheck(me.Player, me.Heli2)
-		sprites.CarryPress(me.Sheld, me.Shot)
-		sprites.InScreen(me.Inner, me.Player)
-		sprites.GoOutside(me.Outer, me.Heli1, me.Heli2, me.Aide1, me.Aide2, me.Boss1, me.Shot, me.Sheld, me.Bullet1)
-		sprites.Clean(me.Heli1, me.Heli2, me.Aide1, me.Aide2, me.Boss1, me.Player, me.Shot, me.Sheld, me.Vanishing1, me.Explosion1, me.Bullet1)
+		action.Update(me, me.Heli1, me.Heli2, me.Aide1, me.Aide2, me.Boss1, me.Bullet1, me.Player, me.Shot, me.Sheld, me.Vanishing1, me.Explosion1)
+		action.HitCheck(me.Shot, me.Heli1)
+		action.HitCheck(me.Shot, me.Heli2)
+		action.HitCheck(me.Shot, me.Aide1)
+		action.HitCheck(me.Shot, me.Aide2)
+		action.HitCheck(me.Shot, me.Boss1)
+		action.HitCheck(me.Bullet1, me.Sheld)
+		action.HitCheck(me.Player, me.Bullet1)
+		action.HitCheck(me.Player, me.Heli1)
+		action.HitCheck(me.Player, me.Heli2)
+		action.CarryPress(me.Sheld, me.Shot)
+		action.InScreen(me.Inner, me.Player)
+		action.GoOutside(me.Outer, me.Heli1, me.Heli2, me.Aide1, me.Aide2, me.Boss1, me.Shot, me.Sheld, me.Bullet1)
+		action.Clean(me.Heli1, me.Heli2, me.Aide1, me.Aide2, me.Boss1, me.Player, me.Shot, me.Sheld, me.Vanishing1, me.Explosion1, me.Bullet1)
 	}
 
 	me.DirectPushed.Update()
@@ -202,10 +205,10 @@ func (me *Stage1) ObjectCount() (int) {
 }
 
 func (me *Stage1) Draw(screen *ebiten.Image) {
-	sprites.ExDraw(screen, me.PlayerImage, me.Player)
-	sprites.ExDraw(screen, me.AideImage, me.Aide1)
-	sprites.ExDraw(screen, me.AideImage, me.Aide2)
-	sprites.ExDraw(screen, me.Boss1Image, me.Boss1)
+	action.ExDraw(screen, me.PlayerImage, me.Player)
+	action.ExDraw(screen, me.AideImage, me.Aide1)
+	action.ExDraw(screen, me.AideImage, me.Aide2)
+	action.ExDraw(screen, me.Boss1Image, me.Boss1)
 	screen.DrawImage(me.HeliImage, me.Heli1.Options())
 	screen.DrawImage(me.HeliImage, me.Heli2.Options())
 	screen.DrawImage(me.ShotImage, me.Shot.Options())
@@ -272,12 +275,12 @@ func (me *Stage1) EventTrigger(id event.Id, argument interface{}, origin orig.In
 
 		case eventid.Shot:
 			//pt := argument.(fig.FloatPoint)
-			me.Shot.Occure(player.NewShot(origin.Point()))
+			me.Shot.Occure(shot.NewShot(origin.Point()))
 
 		case eventid.Sheld:
 			//pt := argument.(fig.FloatPoint)
 			if me.Sheld.Len() < 3 {
-				me.Sheld.Occure(player.NewSheld(origin.Point()))
+				me.Sheld.Occure(sheld.NewSheld(origin.Point()))
 			}
 
 		case eventid.Heli1:
@@ -362,13 +365,13 @@ func New(args scene.Parameter) (scene.Interface) {
 	return &Stage1{
 		KeyConfig:       conf,
 
-		Player:          player.NewPlayers(),
+		Player:          player.NewObjects(),
 		PlayerImage:     LoadImage("./resource/image/Player0102.png"),
 
 		Shot:            sprites.NewObjects(),
 		ShotImage:       LoadImage("./resource/image/PlayerSchott.PNG"),
 
-		Sheld:           player.NewShelds(),
+		Sheld:           sheld.NewObjects(),
 		SheldImage:      LoadImage("./resource/image/bomb.png"),
 
 		Heli1:           sprites.NewObjects(),

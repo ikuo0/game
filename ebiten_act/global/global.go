@@ -2,6 +2,7 @@
 package global
 
 import (
+	"github.com/ikuo0/game/lib/action"
 	"github.com/ikuo0/game/lib/fig"
 	"github.com/ikuo0/game/lib/ginput"
 	"github.com/ikuo0/game/lib/log"
@@ -51,11 +52,15 @@ func (me RectDebugSt) Len() (int) {
 	return len(me.Rects)
 }
 
+func (me RectDebugSt) GetObject(i int) (action.Object) {
+	return nil
+}
+
 func (me RectDebugSt) HitRects(i int) ([]fig.Rect) {
 	return []fig.Rect{me.Rects[i]}
 }
 
-func (me RectDebugSt) Hit(int) {
+func (me RectDebugSt) Hit(int, action.Object) {
 }
 
 var RectDebug RectDebugSt
@@ -147,6 +152,37 @@ func KeyConfig() (*KeyConfigSt) {
 }
 
 //########################################
+//# GameStatus
+//########################################
+type GameStatus struct {
+	Stage int
+	Frame int
+	Once  bool
+}
+
+func (me *GameStatus) Init() {
+	me.Stage = 1
+	me.Frame = 0
+	me.Once  = false
+}
+
+func (me *GameStatus) InitOnce(stageNo int) {
+	me.Stage = stageNo
+	me.Frame = 0
+	me.Once  = true
+}
+
+var GameStatusInstance GameStatus
+
+func GetGameStatus() (GameStatus) {
+	return GameStatusInstance
+}
+
+func SetGameStatus(v GameStatus) {
+	GameStatusInstance = v
+}
+
+//########################################
 //# Soundset
 //########################################
 const SampleRate = 44100
@@ -156,11 +192,6 @@ type SoundsetSt struct {
 	CancelWav *sound.Wav
 	MoveWav   *sound.Wav
 }
-/*
-	SubmitWav *sound.Wav
-	CancelWav *sound.Wav
-	MoveWav   *sound.Wav
-*/
 
 func (me *SoundsetSt) MenuSubmit() {
 	me.SubmitWav.Play()

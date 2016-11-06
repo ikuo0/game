@@ -5,6 +5,7 @@ import (
 	"github.com/ikuo0/game/ebiten_stg/eventid"
 	"github.com/ikuo0/game/ebiten_stg/effect"
 	"github.com/ikuo0/game/ebiten_stg/world"
+	"github.com/ikuo0/game/lib/action"
 	"github.com/ikuo0/game/lib/event"
 	"github.com/ikuo0/game/lib/script"
 	"github.com/ikuo0/game/lib/anime"
@@ -102,7 +103,7 @@ func (me *Heli0) HitRects() ([]fig.Rect) {
 	return []fig.Rect{{x, y, x + 48, y + 48}}
 }
 
-func (me *Heli0) Hit() {
+func (me *Heli0) Hit(obj action.Object) {
 	me.Endurance--
 }
 func (me *Heli0) Stack() (*script.Stack) {
@@ -283,7 +284,7 @@ func (me *Aide) HitRects() ([]fig.Rect) {
 	}
 }
 
-func (me *Aide) Hit() {
+func (me *Aide) Hit(obj action.Object) {
 	me.Endurance--
 	if me.Endurance <= 0 {
 		me.Dead = true

@@ -4,20 +4,19 @@ package shot
 import (
 	"github.com/ikuo0/game/lib/action"
 	"github.com/ikuo0/game/lib/event"
-	"github.com/ikuo0/game/lib/script"
 	"github.com/ikuo0/game/lib/fig"
 	"github.com/ikuo0/game/lib/move"
 	"github.com/ikuo0/game/lib/radian"
+	"github.com/ikuo0/game/lib/script"
+	//"github.com/hajimehoshi/ebiten"
+	//"math"
+	//"fmt"
 )
 
 //########################################
 //# Shot
 //########################################
-const Width = 20
-const Height = 20
-const AdjustX = -10
-const AdjustY = -10
-var ImageSrc = fig.Rect {0, 0, Width, Height}
+var SrcShot = fig.Rect {0, 66, 0 + 60, 66 + 66}
 type Shot struct {
 	fig.FloatPoint
 	Vanished   bool
@@ -46,11 +45,11 @@ func (me *Shot) IsVanish() (bool) {
 	return me.Vanished
 }
 func (me *Shot) Src() (x0, y0, x1, y1 int) {
-	return ImageSrc.Left, ImageSrc.Top, ImageSrc.Right, ImageSrc.Bottom
+	return SrcShot.Left, SrcShot.Top, SrcShot.Right, SrcShot.Bottom
 }
 func (me *Shot) Dst() (x0, y0, x1, y1 int) {
-	x, y := int(me.X) + AdjustX, int(me.Y) + AdjustY
-	return x, y, x + Width, y + Height
+	x, y := int(me.X) - 24, int(me.Y) - 30
+	return x, y, x + 48, y + 60
 }
 func (me *Shot) SetPoint(pt fig.FloatPoint) {
 	me.FloatPoint = pt
@@ -59,12 +58,12 @@ func (me *Shot) HitRects() ([]fig.Rect) {
 	if me.Endurance <= 0 {
 		return nil
 	} else {
-		x, y := int(me.X) + AdjustX, int(me.Y) + AdjustY
-		return []fig.Rect{{x, y, x + Width, y + Height}}
+		x, y := int(me.X) - 24, int(me.Y) - 30
+		return []fig.Rect{{x, y, x + 48, y + 60}}
 	}
 }
 
-func (me *Shot) Hit(origin action.Object) {
+func (me *Shot) Hit(obj action.Object) {
 	me.Endurance--
 	me.Vanish()
 }
@@ -73,11 +72,10 @@ func (me *Shot) Stack() (*script.Stack) {
 	return nil
 }
 
-func New(pt fig.FloatPoint, rad radian.Radian) (*Shot) {
+func NewShot(pt fig.FloatPoint) (*Shot) {
 	return &Shot{
 		FloatPoint: pt,
-		V:          move.NewConstant(rad, 16),
-		Endurance:  1,
+		V:          move.NewConstant(radian.Up(), 32),
+		Endurance:  6,
 	}
 }
-
