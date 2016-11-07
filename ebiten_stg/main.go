@@ -9,7 +9,6 @@ import (
 	"github.com/ikuo0/game/lib/log"
 	"github.com/ikuo0/game/lib/sound"
 	"github.com/hajimehoshi/ebiten"
-	//"github.com/hajimehoshi/ebiten/ebitenutil"
 	"os"
 	"path"
 )
@@ -21,7 +20,6 @@ var sceneChanger = changer.NewChanger(changer.SceneList {
 })
 
 func update(screen *ebiten.Image) error {
-	//ebitenutil.DebugPrint(screen, "Hello world!")
 	sound.Update()
 	return sceneChanger.Play(screen)
 }
@@ -31,5 +29,5 @@ func main() {
 	log.Start(global.Path().File(`log.txt`))
 	sound.Initialize(global.SampleRate, 20, 20)
 	sceneChanger.Apply([]string{"title"})
-	ebiten.Run(update, 800, 600, 1, "Hello world!")
+	ebiten.Run(update, 800, 600, 1, "EBITEN STG")
 }

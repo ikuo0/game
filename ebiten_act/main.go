@@ -16,11 +16,6 @@ import (
 	"path"
 )
 
-/*
-	Main(*ebiten.Image) (bool)
-	Dispose()
-	ReturnValue() (Parameter)
-*/
 type Initialize struct {
 }
 
@@ -48,7 +43,6 @@ var sceneChanger = changer.NewChanger(changer.SceneList {
 })
 
 func update(screen *ebiten.Image) error {
-	//ebitenutil.DebugPrint(screen, "Hello world!")
 	sound.Update()
 	return sceneChanger.Play(screen)
 }
@@ -58,5 +52,5 @@ func main() {
 	log.Start(global.Path().File(`log.txt`))
 	sound.Initialize(global.SampleRate, 20, 20)
 	sceneChanger.Apply([]string{"initialize"})
-	ebiten.Run(update, 800, 600, 1, "Hello world!")
+	ebiten.Run(update, 800, 600, 1, "EBITEN ACT")
 }

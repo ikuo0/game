@@ -33,7 +33,6 @@ import (
 	"strings"
 )
 
-const LastStage = 3
 const PanelTemplate = `Frame #Frame# Total #TotalFrame# Objects #ObjectCount# #FrameCount#fps`
 
 //########################################
@@ -401,11 +400,19 @@ func CreateStageScript(src MapData) ([]script.Proc) {
 	return res
 }
 
+const LastStage = 10
 func GetMapSource(mapNo int64) (MapData) {
 	switch mapNo {
 		case 1: return Map1Source
 		case 2: return Map2Source
 		case 3: return Map3Source
+		case 4: return Map4Source
+		case 5: return Map5Source
+		case 6: return Map6Source
+		case 7: return Map7Source
+		case 8: return Map8Source
+		case 9: return Map9Source
+		case 10: return Map10Source
 	}
 	return nil
 }

@@ -33,7 +33,7 @@ func (me *Initialize) Dispose() {
 }
 
 func (me *Initialize) ReturnValue() (scene.Parameter) {
-	return []string{"stage", "3"}
+	return []string{"stage", "10"}
 }
 
 func NewInitialize(args scene.Parameter) (scene.Interface) {
@@ -48,7 +48,6 @@ var sceneChanger = changer.NewChanger(changer.SceneList {
 })
 
 func update(screen *ebiten.Image) error {
-	//ebitenutil.DebugPrint(screen, "Hello world!")
 	sound.Update()
 	return sceneChanger.Play(screen)
 }
