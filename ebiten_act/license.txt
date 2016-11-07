@@ -1,0 +1,16 @@
+https://github.com/ikuo0/game/tree/master/ebiten_act
+について
+
+■プログラムについて
+使用制限等特にありません、自己責任で好きに使いまわしてください。
+
+ebitenライブラリはebitenのライセンスに従ってご使用ください。
+https://hajimehoshi.github.io/ebiten/
+
+■ＳＥ素材
+「魔王魂」様より
+http://maoudamashii.jokersounds.com/
+
+■BGM
+「M-ART」様より
+http://mart.kitunebi.com/
