@@ -1,6 +1,12 @@
 # ebiten_act
 注意点とか
 
+# ■ゲーム本体のダウンロード
+本ディレクトリの 
+> ebiten_act_release.zip
+がWindows用のバイナリになります。 
+Mac、Linux用はありませんのでビルドして ebiten_act_release.zip から resource フォルダを上書きしてください 
+
 # ■ゲームのルール
 ロボットを操作して渦巻きマークを全部取ってください 
 全ての渦巻きマークを取るとステージクリアです
