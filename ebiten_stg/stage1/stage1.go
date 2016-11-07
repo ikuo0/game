@@ -31,6 +31,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"time"
 	//"github.com/hajimehoshi/ebiten/ebitenutil"
 )
 
@@ -52,14 +53,23 @@ const PanelTemplate = `
 type Sounds struct {
 	Explosion *sound.Wav
 	Hit       *sound.Wav
+	Bgm       *sound.Ogg
+}
+
+func (me *Sounds) Dispose() {
+	me.Explosion.Dispose()
+	me.Hit.Dispose()
+	me.Bgm.Dispose()
 }
 
 func NewSounds() (*Sounds) {
 	exp, _ := sound.NewWav("./resource/sound/se_maoudamashii_explosion06.wav")
 	hit, _ := sound.NewWav("./resource/sound/se_maoudamashii_battle16.wav")
+	bgm, _ := sound.NewOgg("./resource/sound/bgm.ogg")
 	return &Sounds {
 		Explosion: exp,
 		Hit:       hit,
+		Bgm:       bgm,
 	}
 }
 
@@ -185,6 +195,9 @@ func (me *Stage1) Update() {
 		me.Debug = !me.Debug
 	}
 
+	if !me.Sound.Bgm.IsPlaying() {
+		me.Sound.Bgm.Play(time.Millisecond * 500)
+	}
 	//sound.Update()
 }
 
@@ -252,6 +265,9 @@ func (me *Stage1) EventTrigger(id event.Id, argument interface{}, origin orig.In
 			me.PlayerEntity = player.NewPlayer(world.StartPoint())
 			me.Player.Occure(me.PlayerEntity)
 
+		case eventid.BgmPlay:
+			//me.Sound.Bgm.Play(32)
+
 		case eventid.PlayerDied:
 			cnt := world.GetPlayerCount()
 			cnt -= 1
@@ -313,7 +329,7 @@ func (me *Stage1) EventTrigger(id event.Id, argument interface{}, origin orig.In
 			me.Bullet1.Occure(bullet.NewBullet1(origin.Point(), rad))
 
 		case eventid.Explosion1:
-			me.Sound.Explosion.Play()
+			me.Sound.Explosion.Play(0)
 			pt := origin.Point()
 			if relative, ok := argument.(fig.FloatPoint); ok {
 				pt.X += relative.X
@@ -342,6 +358,7 @@ func (me *Stage1) Main(screen *ebiten.Image) (bool) {
 }
 
 func (me *Stage1) Dispose() {
+	me.Sound.Dispose()
 }
 
 func (me *Stage1) ReturnValue() (scene.Parameter) {
@@ -413,6 +430,7 @@ func New(args scene.Parameter) (scene.Interface) {
 			script.NewEventProc(eventid.Aide1, fig.FloatPoint{400, 64}),
 			script.NewWaitProc(30),
 			script.NewEventProc(eventid.Player, fig.FloatPoint{250, 400}),
+			script.NewEventProc(eventid.BgmPlay, fig.FloatPoint{250, 400}),
 			script.NewWaitProc(30),
 			script.NewEventProc(eventid.Heli1, fig.FloatPoint{100, 0}),
 			script.NewWaitProc(3),
@@ -571,7 +589,7 @@ func New(args scene.Parameter) (scene.Interface) {
 			script.NewEventProc(eventid.Heli2, fig.FloatPoint{460, 0}),
 			script.NewEventProc(eventid.Heli2, fig.FloatPoint{480, 0}),
 			script.NewEventProc(eventid.Heli2, fig.FloatPoint{500, 0}),
-			script.NewJumpProc(6),
+			script.NewJumpProc(7),
 		}),
 	}
 }

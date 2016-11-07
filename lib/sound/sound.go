@@ -2,26 +2,34 @@
 package sound
 
 import (
+	"github.com/ikuo0/game/lib/log"
+	"github.com/hajimehoshi/ebiten/audio"
+	"github.com/hajimehoshi/ebiten/audio/vorbis"
+	"github.com/hajimehoshi/ebiten/audio/wav"
+	"github.com/hajimehoshi/ebiten/ebitenutil"
 	"fmt"
 	"io/ioutil"
-	"os"
-    "github.com/hajimehoshi/ebiten/audio"
-    "github.com/hajimehoshi/ebiten/audio/vorbis"
-    "github.com/hajimehoshi/ebiten/audio/wav"
-    "github.com/hajimehoshi/ebiten/ebitenutil"
+	"time"
 )
 
 var Context *audio.Context = nil
 var SmapleRate int = 44100
+var BgmVolume  float64 = 24
+var SEVolume   float64 = 24
 
 func NewContext(sampleRate int) () {
 	if a, e1 := audio.NewContext(sampleRate); e1 != nil {
-		fmt.Println("sound#NewContext#NewContext", e1)
-		os.Exit(1)
+		log.Exit("sound#NewContext#NewContext error: %s", e1.Error())
 	} else {
 		Context = a
 		SmapleRate = sampleRate
 	}
+}
+
+func Initialize(sampleRate int, seVolume, bgmVolume float64) {
+	NewContext(sampleRate)
+	SEVolume  = seVolume / float64(128)
+	BgmVolume = bgmVolume / float64(128)
 }
 
 func Update() {
@@ -31,8 +39,37 @@ func Update() {
 //########################################
 //# Wave
 //########################################
+type PlayerQueue []*audio.Player
+func (me *PlayerQueue) Pop() (*audio.Player, bool) {
+	if len(*me) < 1 {
+		return nil, false
+	} else {
+		res, body := (*me)[0], (*me)[1:]
+		*me = body
+		return res, true
+	}
+}
+func (me *PlayerQueue) Push(v *audio.Player) {
+	*me = append(*me, v)
+}
+func (me PlayerQueue) Split() (PlayerQueue, PlayerQueue) {
+	actives := PlayerQueue{}
+	unactives := PlayerQueue{}
+	for _, v := range me {
+		if v.IsPlaying() {
+			actives = append(actives, v)
+		} else {
+			unactives = append(unactives, v)
+		}
+	}
+	return actives, unactives
+}
+
 type Wav struct {
 	Data []byte
+	SEPlayer *audio.Player
+	Actives   PlayerQueue
+	Unactives PlayerQueue
 }
 
 func (me *Wav) Load(fileName string) (error) {
@@ -48,15 +85,48 @@ func (me *Wav) Load(fileName string) (error) {
 	}
 }
 
-func (me *Wav) Play() {
-	if sePlayer, e1 := audio.NewPlayerFromBytes(Context, me.Data); e1 != nil {
-		fmt.Println("NewPlayerFromBytes error", e1)
-		os.Exit(1)
+//var activesLen, unactivesLen int
+func (me *Wav) Play(pos time.Duration) {
+	me.Actives, me.Unactives = me.Actives.Split()
+
+/*
+	if len(me.Actives) != activesLen || len(me.Unactives) != unactivesLen {
+		a, u := len(me.Actives), len(me.Unactives)
+		fmt.Println(a, u)
+		activesLen, unactivesLen = a, u
+	}
+	*/
+
+	if player, exist := me.Unactives.Pop(); exist {
+		player.SetVolume(SEVolume)
+		player.Seek(pos)
+		player.Play()
+		return
+	} else if sePlayer, e1 := audio.NewPlayerFromBytes(Context, me.Data); e1 != nil {
+		log.Log("Wav#Play#NewPlayerFromBytes error: %s", e1.Error())
 		return
 	} else {
+		sePlayer.SetVolume(SEVolume)
+		sePlayer.Seek(pos)
 		sePlayer.Play()
+		me.Actives.Push(sePlayer)
 		return
 	}
+}
+
+func (me *Wav) Dispose() (error) {
+	var e error
+	for _, v := range me.Actives {
+		if e1 := v.Close(); e1 != nil {
+			e = e1
+		}
+	}
+	for _, v := range me.Unactives {
+		if e1 := v.Close(); e1 != nil {
+			e = e1
+		}
+	}
+	return e
 }
 
 func NewWav(fileName string) (*Wav, error) {
@@ -89,19 +159,18 @@ func (me *Ogg) Load(fileName string) (error) {
 	}
 }
 
-func (me *Ogg) Play(v int) {
-	/*
-	if me.Player.IsPlaying() {
-		me.Player.Seek(0)
-	}
-	*/
-
-	me.Player.SetVolume(float64(v) / 128)
+func (me *Ogg) Play(pos time.Duration) {
+	me.Player.Seek(pos)
+	me.Player.SetVolume(BgmVolume)
 	me.Player.Play()
 }
 
-func (me *Ogg) Dispose() {
-	me.Player.Close()
+func (me *Ogg) IsPlaying() (bool) {
+	return me.Player.IsPlaying()
+}
+
+func (me *Ogg) Dispose() (error) {
+	return me.Player.Close()
 }
 
 func NewOgg(fileName string) (*Ogg, error) {

@@ -31,6 +31,7 @@ const (
 	Vanishing3
 	BigNumber
 	Score
+	BgmPlay
 )
 
 func String(id event.Id) (string) {
@@ -55,6 +56,8 @@ func String(id event.Id) (string) {
 		case Explosion2: return "Explosion2"
 		case Explosion3: return "Explosion3"
 		case BigNumber: return "BigNumber"
+		case Score: return "Score"
+		case BgmPlay: return "BgmPlay"
 	}
 	return "Unknown"
 }

@@ -194,15 +194,15 @@ type SoundsetSt struct {
 }
 
 func (me *SoundsetSt) MenuSubmit() {
-	me.SubmitWav.Play()
+	me.SubmitWav.Play(0)
 }
 
 func (me *SoundsetSt) MenuCancel() {
-	me.CancelWav.Play()
+	me.CancelWav.Play(0)
 }
 
 func (me *SoundsetSt) MenuMove() {
-	me.MoveWav.Play()
+	me.MoveWav.Play(0)
 }
 
 func Soundset() (*SoundsetSt, error) {

@@ -29,7 +29,7 @@ func update(screen *ebiten.Image) error {
 func main() {
 	global.SetRootPath(path.Dir(os.Args[0]))
 	log.Start(global.Path().File(`log.txt`))
-	sound.NewContext(global.SampleRate)
+	sound.Initialize(global.SampleRate, 20, 20)
 	sceneChanger.Apply([]string{"title"})
 	ebiten.Run(update, 800, 600, 1, "Hello world!")
 }
