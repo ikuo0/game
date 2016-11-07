@@ -48,7 +48,7 @@ const PanelTemplate = `
 `
 
 //########################################
-//# Source
+//# Sounds
 //########################################
 type Sounds struct {
 	Explosion *sound.Wav

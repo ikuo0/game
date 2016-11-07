@@ -2,6 +2,7 @@
 package vortex
 
 import (
+	"github.com/ikuo0/game/ebiten_act/eventid"
 	"github.com/ikuo0/game/lib/action"
 	"github.com/ikuo0/game/lib/event"
 	"github.com/ikuo0/game/lib/script"
@@ -28,7 +29,8 @@ var ImageSource = []fig.Rect {
 
 type Vortex struct {
 	fig.FloatPoint
-	Taken bool
+	Taken    bool
+	Vanished bool
 }
 
 func (me *Vortex) Point() (fig.FloatPoint) {
@@ -40,13 +42,18 @@ func (me *Vortex) Direction() (radian.Radian) {
 }
 
 func (me *Vortex) Update(trigger event.Trigger) {
+	if me.Taken {
+		trigger.EventTrigger(eventid.VortexTaken, nil, me)
+		me.Vanish()
+	}
 }
 
 func (me *Vortex) Vanish() {
+	me.Vanished = true
 }
 
 func (me *Vortex) IsVanish() (bool) {
-	return me.Taken
+	return me.Vanished
 }
 func (me *Vortex) Src() (x0, y0, x1, y1 int) {
 	x := ImageSource[0]

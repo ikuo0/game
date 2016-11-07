@@ -22,6 +22,7 @@ import (
 	"github.com/ikuo0/game/lib/radian"
 	"github.com/ikuo0/game/lib/scene"
 	"github.com/ikuo0/game/lib/script"
+	"github.com/ikuo0/game/lib/sound"
 	"github.com/ikuo0/game/lib/sprites"
 	"github.com/ikuo0/game/lib/ttpl"
 	"github.com/hajimehoshi/ebiten"
@@ -34,6 +35,56 @@ import (
 
 const LastStage = 3
 const PanelTemplate = `Frame #Frame# Total #TotalFrame# Objects #ObjectCount# #FrameCount#fps`
+
+//########################################
+//# Sounds
+//########################################
+func LoadWav(fileName string) (*sound.Wav) {
+	if wav, e1 := sound.NewWav(fileName); e1 != nil {
+		log.Exit("WAV読み込みエラー: %s", e1.Error())
+		return nil
+	} else {
+		return wav
+	}
+}
+
+func LoadOgg(fileName string) (*sound.Ogg) {
+	if wav, e1 := sound.NewOgg(fileName); e1 != nil {
+		log.Exit("Ogg読み込みエラー: %s", e1.Error())
+		return nil
+	} else {
+		return wav
+	}
+}
+
+type Sounds struct {
+	Shot      *sound.Wav
+	Jump      *sound.Wav
+	Item      *sound.Wav
+	Beat      *sound.Wav
+	Explosion *sound.Wav
+	Bgm       *sound.Ogg
+}
+
+func (me *Sounds) Dispose() {
+	me.Shot.Dispose()
+	me.Jump.Dispose()
+	me.Item.Dispose()
+	me.Beat.Dispose()
+	me.Explosion.Dispose()
+	me.Bgm.Dispose()
+}
+
+func NewSounds() (*Sounds) {
+	return &Sounds {
+		Shot:      LoadWav("./resource/sound/se_maoudamashii_battle18.wav"),
+		Jump:      LoadWav("./resource/sound/se_maoudamashii_retro03.wav"),
+		Item:      LoadWav("./resource/sound/se_maoudamashii_retro16.wav"),
+		Beat:      LoadWav("./resource/sound/se_maoudamashii_retro11.wav"),
+		Explosion: LoadWav("./resource/sound/se_maoudamashii_retro28.wav"),
+		Bgm:       LoadOgg("./resource/sound/m-art_LostWoods.ogg"),
+	}
+}
 
 //########################################
 //# Stage1
@@ -82,6 +133,7 @@ type Stage1 struct {
 
 	Stack            script.Stack
 	Source           script.Input
+	Sound            *Sounds
 
 	Pushed           *ginput.Pushed
 	DirectPushed     *ginput.DirectPushed
@@ -131,7 +183,7 @@ func (me *Stage1) Update() {
 
 		action.SetInput(bits, me.Player)
 
-		action.Update(me, me.Enemy, me.Player, me.Shot, me.Explosion1, me.OccureBlock)
+		action.Update(me, me.Enemy, me.Player, me.Shot, me.Vortex, me.Explosion1, me.OccureBlock)
 		action.HitCheck(me.Shot, me.Enemy)
 		action.UniHitCheck(me.Shot, me.Block, me.OccureBlock)
 		action.UniHitCheck(me.Player, me.Enemy)
@@ -214,14 +266,25 @@ func (me *Stage1) EventTrigger(id event.Id, argument interface{}, origin orig.In
 			me.Player.Occure(me.PlayerEntity)
 
 		case eventid.Shot:
+			me.Sound.Shot.Play(0)
 			o := argument.(orig.Interface)
 			me.Shot.Occure(shot.New(o.Point(), o.Direction()))
+
+		case eventid.Jump:
+			me.Sound.Jump.Play(0)
+
+		case eventid.Beat:
+			me.Sound.Beat.Play(0)
+
+		case eventid.VortexTaken:
+			me.Sound.Item.Play(0)
 
 		case eventid.Enemy:
 			setting := argument.(funcs.EnemyConfig)
 			me.Enemy.Occure(enemy.New(setting))
 
 		case eventid.Explosion1:
+			me.Sound.Explosion.Play(0)
 			pt := argument.(fig.FloatPoint)
 			me.Explosion1.Occure(explosion.NewExplosion1(pt))
 
@@ -277,6 +340,7 @@ func (me *Stage1) Main(screen *ebiten.Image) (bool) {
 }
 
 func (me *Stage1) Dispose() {
+	me.Sound.Dispose()
 }
 
 func (me *Stage1) CreateReturnValue() (scene.Parameter) {
@@ -413,6 +477,7 @@ func New(args scene.Parameter) (scene.Interface) {
 		Outer:            fig.Rect{-64, -64, 800 + 64, 600 + 64},
 
 		Source:           script.NewSource(scriptSource),
+		Sound:            NewSounds(),
 		Debug:            false,
 	}
 }

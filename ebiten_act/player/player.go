@@ -73,7 +73,8 @@ type Player struct {
 	Dead          bool
 	CanJump       bool
 	Beaten        bool
-	BeatenTimer   *timer.Frame
+	Blackout      bool
+	BlackoutTimer   *timer.Frame
 	CurrentSrc    fig.Rect
 	V             *move.FallingInertia
 	InputBits     ginput.InputBits
@@ -106,9 +107,16 @@ func (me *Player) Update(trigger event.Trigger) {
 		bits := me.InputBits
 		me.Kbuffer.Update(bits)
 
-		if me.Beaten && me.BeatenTimer.Up() {
-			//
-			me.Beaten = false
+		if me.Blackout {
+			if me.BlackoutTimer.Up() {
+				me.Blackout = false
+				me.Beaten = false
+			}
+		} else if me.Beaten {
+			trigger.EventTrigger(eventid.Beat, nil, me)
+			me.Blackout = true
+			me.BlackoutTimer.Start(60)
+		} else {
 		}
 
 		if bits.And(ginput.Left) {
@@ -137,6 +145,7 @@ func (me *Player) Update(trigger event.Trigger) {
 		}
 
 		if me.CanJump && kcmd.Check(JumpCommand, me.Kbuffer, 1) {
+			trigger.EventTrigger(eventid.Jump, nil, me)
 			me.V.Jump(17)
 		}
 
@@ -180,10 +189,9 @@ func (me *Player) HitRects() ([]fig.Rect) {
 }
 
 func (me *Player) Hit(origin action.Object) {
-	if me.Beaten {
+	if me.Blackout || me.Beaten {
 	} else {
 		me.Beaten = true
-		me.BeatenTimer.Start(60)
 		me.V.Jump(13)
 		if origin.Point().X > me.X {
 			me.V.Left.Accel(me.V.Left.MaxPower)
@@ -191,6 +199,19 @@ func (me *Player) Hit(origin action.Object) {
 			me.V.Right.Accel(me.V.Right.MaxPower)
 		}
 	}
+/*
+	if me.Beaten {
+	} else {
+		me.Beaten = true
+		me.BlackoutTimer.Start(60)
+		me.V.Jump(13)
+		if origin.Point().X > me.X {
+			me.V.Left.Accel(me.V.Left.MaxPower)
+		} else {
+			me.V.Right.Accel(me.V.Right.MaxPower)
+		}
+	}
+	*/
 }
 
 func (me *Player) HitWall(origin action.Object) {
@@ -238,7 +259,7 @@ func New(pt fig.FloatPoint) (*Player) {
 		Endurance:  100,
 		Anime:      anime.NewFrames(8, 8),
 		FallingRects: funcs.NewFallingRects(hitWidth, hitHeight, hitAdjustX, hitAdjustY),
-		BeatenTimer:  timer.NewFrame(0),
+		BlackoutTimer:  timer.NewFrame(0),
 	}
 }
 

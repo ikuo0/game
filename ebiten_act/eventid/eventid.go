@@ -10,11 +10,13 @@ const (
 	PlayerDied
 	StageClear
 	Shot
-	Sheld
+	Jump
+	Beat
 	Enemy
 	Explosion1
 	Explosion2
 	Vortex
+	VortexTaken
 	BigNumber
 	Score
 	Block
@@ -29,11 +31,13 @@ func String(id event.Id) (string) {
 		case PlayerDied: return "PlayerDied"
 		case StageClear: return "StageClear"
 		case Shot: return "Shot"
-		case Sheld: return "Sheld"
+		case Jump: return "Jump"
+		case Beat: return "Beat"
 		case Enemy: return "Enemy"
 		case Explosion1: return "Explosion1"
 		case Explosion2: return "Explosion2"
 		case Vortex: return "Vortex"
+		case VortexTaken: return "VortexTaken"
 		case BigNumber: return "BigNumber"
 		case Score: return "Score"
 		case Block: return "Block"
