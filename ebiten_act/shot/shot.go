@@ -21,7 +21,8 @@ var ImageSrc = fig.Rect {0, 0, Width, Height}
 type Shot struct {
 	fig.FloatPoint
 	Vanished   bool
-	V          *move.Constant
+	Radian     radian.Radian
+	V          *move.FixedVector
 	Endurance  int
 }
 
@@ -30,13 +31,13 @@ func (me *Shot) Point() (fig.FloatPoint) {
 }
 
 func (me *Shot) Direction() (radian.Radian) {
-	return radian.Up()
+	return me.Radian
 }
 
 func (me *Shot) Update(trigger event.Trigger) {
-	p := me.V.Power()
-	me.X += p.X
-	me.Y += p.Y
+	me.V.Accel(16)
+	me.X += me.V.X()
+	me.Y += me.V.Y()
 }
 
 func (me *Shot) Vanish() {
@@ -76,7 +77,8 @@ func (me *Shot) Stack() (*script.Stack) {
 func New(pt fig.FloatPoint, rad radian.Radian) (*Shot) {
 	return &Shot{
 		FloatPoint: pt,
-		V:          move.NewConstant(rad, 16),
+		Radian:     rad,
+		V:          move.NewFixedVector(rad, 16),
 		Endurance:  1,
 	}
 }

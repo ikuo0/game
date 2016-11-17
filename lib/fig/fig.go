@@ -14,6 +14,12 @@ type Point struct {
 	Y int
 }
 
+func (me Point) Equal(pt Point) (bool) {
+	return me.X == pt.X && me.Y == pt.Y
+}
+
+
+
 func (me Point) Diff(pt Point) (Point) {
 	return Point {
 		X: me.X - pt.X,
@@ -50,6 +56,25 @@ func (me FloatPoint) ToInt() (Point) {
 	}
 }
 
+//########################################
+//# Line
+//########################################
+type Line struct {
+	Start Point
+	End   Point
+}
+
+func (me Line) Hit(l *Line) (bool) {
+	ta := (l.Start.X - l.End.X) * (me.Start.Y - l.Start.Y) + (l.Start.Y - l.End.Y) * (l.Start.X - me.Start.X);
+	tb := (l.Start.X - l.End.X) * (me.End.Y - l.Start.Y) + (l.Start.Y - l.End.Y) * (l.Start.X - me.End.X);
+	tc := (me.Start.X - me.End.X) * (l.Start.Y - me.Start.Y) + (me.Start.Y - me.End.Y) * (me.Start.X - l.Start.X);
+	td := (me.Start.X - me.End.X) * (l.End.Y - me.Start.Y) + (me.Start.Y - me.End.Y) * (me.Start.X - l.End.X);
+	return tc * td < 0 && ta * tb < 0;
+}
+
+//########################################
+//# Rect
+//########################################
 type Rect struct {
 	Left   int
 	Top	int
@@ -114,3 +139,37 @@ func (me Rect) InF(pt FloatPoint) (bool) {
 	y <= me.Bottom
 }
 
+func (me Rect) LeftLine() (Line) {
+	return Line {
+		Start: Point {me.Left, me.Top},
+		End:   Point {me.Left, me.Bottom},
+	}
+}
+
+func (me Rect) TopLine() (Line) {
+	return Line {
+		Start: Point {me.Left, me.Top},
+		End:   Point {me.Right, me.Top},
+	}
+}
+
+func (me Rect) RightLine() (Line) {
+	return Line {
+		Start: Point {me.Right, me.Top},
+		End:   Point {me.Right, me.Bottom},
+	}
+}
+
+func (me Rect) BottomLine() (Line) {
+	return Line {
+		Start: Point {me.Left, me.Bottom},
+		End:   Point {me.Right, me.Bottom},
+	}
+}
+
+//########################################
+//# Funcs
+//########################################
+func PointToLine(from, to Point) (Line) {
+	return Line {from, to}
+}

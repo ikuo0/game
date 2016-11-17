@@ -6,6 +6,7 @@ import (
 	"github.com/ikuo0/game/lib/anime"
 	"github.com/ikuo0/game/lib/event"
 	"github.com/ikuo0/game/lib/fig"
+	"github.com/ikuo0/game/lib/gradian"
 	"github.com/ikuo0/game/lib/move"
 	"github.com/ikuo0/game/lib/radian"
 	"github.com/ikuo0/game/lib/script"
@@ -22,8 +23,8 @@ var SrcSheld = fig.Rect {64, 64, 64 + 320, 64 + 320}
 type Sheld struct {
 	fig.FloatPoint
 	Vanished   bool
-	Anime     *anime.Frames
-	V          *move.Accel
+	Anime      *anime.Frames
+	V          *move.FixedVector
 }
 
 func (me *Sheld) Point() (fig.FloatPoint) {
@@ -31,14 +32,13 @@ func (me *Sheld) Point() (fig.FloatPoint) {
 }
 
 func (me *Sheld) Direction() (radian.Radian) {
-	return radian.Up()
+	return gradian.Up()
 }
 
 func (me *Sheld) Update(trigger event.Trigger) {
-	me.V.Accel()
-	p := me.V.Power()
-	me.X += p.X
-	me.Y += p.Y
+	//me.V.Accel(0.2)
+	me.X += me.V.X()
+	me.Y += me.V.Y()
 	me.Anime.Update()
 }
 
@@ -75,7 +75,7 @@ func (me *Sheld) Hit(obj action.Object) {
 }
 
 func (me *Sheld) Pushed() {
-	me.V.Speed.MaxPower += 0.2
+	me.V.Accel(0.2)
 }
 
 func (me *Sheld) Stack() (*script.Stack) {
@@ -83,10 +83,12 @@ func (me *Sheld) Stack() (*script.Stack) {
 }
 
 func NewSheld(pt fig.FloatPoint) (*Sheld) {
+	v := move.NewFixedVector(gradian.Up(), 0.7)
+	v.Rate = 0.2
 	return &Sheld{
 		FloatPoint: pt,
 		Anime:      anime.NewFrames(8, 7, 3, 2, 8),
-		V:          move.NewAccel(radian.Up(), 0.1, 0.1, 0.7),
+		V:          v,
 	}
 }
 

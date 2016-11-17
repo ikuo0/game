@@ -5,6 +5,7 @@ import (
 	"github.com/ikuo0/game/ebiten_act/global"
 	"github.com/ikuo0/game/lib/fig"
 	"github.com/ikuo0/game/lib/move"
+	//"math"
 	//"fmt"
 )
 
@@ -23,6 +24,29 @@ func (me FaceDirection) String() (string) {
 		case FaceRight: return "FaceRight"
 	}
 	return "FaceUnknown"
+}
+
+//########################################
+//# Standard Gravity
+//########################################
+const GravityAccel float64 = 0.6
+type Gravity struct {
+	*move.Gravity
+}
+
+func (me *Gravity) Value() (float64) {
+// 重力が小数点時、整数になるまで落下判定で着地できなくなるため+１未満は１にする
+	if res := me.Gravity.Value(); res > 0 && res < 1 {
+		return 1
+	} else {
+		return res
+	}
+}
+
+func NewGravity() (*Gravity) {
+	return &Gravity {
+		Gravity: move.NewGravity(12, 0.6),
+	}
 }
 
 //########################################
@@ -48,49 +72,13 @@ type FallingRects struct {
 	Foot fig.Rect
 }
 
-func (me *FallingRects) HitWall(pt fig.Point, power move.Power, walls []fig.Rect) (fig.Point, WallStatus) {
+func (me *FallingRects) HitWall(fpt fig.FloatPoint, descend bool, walls []fig.Rect) (fig.Point, WallStatus) {
+	pt := fpt.ToInt()
 	status := WallNone
 
 	global.RectDebug.Clear()
 
-/*
-	for _, w := range walls {
-		if ptDiff.Y < 0 {// 上昇中
-			head := me.Head.Relative(pt)
-			global.RectDebug.Append(head)
-			if head.Hit(&w) {
-				status |= WallTop
-				pt.Y += w.Bottom - head.Top
-			}
-		}
-
-		body := me.Body.Relative(pt)
-		//global.RectDebug.Append(body)
-		if body.Hit(&w) {
-			if body.Center().X > w.Center().X {
-				status |= WallLeft
-				pt.X += w.Right - body.Left
-			} else {
-				status |= WallRight
-				pt.X -= body.Right - w.Left
-			}
-		}
-
-		if ptDiff.Y > 0 {// 下降中
-			foot := me.Foot.Relative(pt)
-			global.RectDebug.Append(foot)
-			//global.RectDebug.Append(foot)
-			if foot.Hit(&w) {
-				status |= WallBottom
-				pt.Y -= foot.Bottom - w.Top
-			}
-		}
-	}
-*/
-
-// 順番重要
-
-	if power.Y < 0 {// 上昇中
+	if !descend {// 上昇中
 		for _, w := range walls {
 			head := me.Head.Relative(pt)
 			//global.RectDebug.Append(head)
@@ -115,14 +103,14 @@ func (me *FallingRects) HitWall(pt fig.Point, power move.Power, walls []fig.Rect
 		}
 	}
 
-	if power.Y > 0 {// 下降中
+	if descend {// 下降中
 		for _, w := range walls {
 			foot := me.Foot.Relative(pt)
 			global.RectDebug.Append(foot)
 			//global.RectDebug.Append(foot)
 			if foot.Hit(&w) {
 				status |= WallBottom
-				pt.Y -= foot.Bottom - w.Top
+				pt.Y -= (foot.Bottom - w.Top)
 			}
 		}
 	}

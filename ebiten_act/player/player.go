@@ -11,6 +11,7 @@ import (
 	"github.com/ikuo0/game/lib/event"
 	"github.com/ikuo0/game/lib/fig"
 	"github.com/ikuo0/game/lib/ginput"
+	"github.com/ikuo0/game/lib/gradian"
 	"github.com/ikuo0/game/lib/kcmd"
 	"github.com/ikuo0/game/lib/move"
 	"github.com/ikuo0/game/lib/radian"
@@ -35,6 +36,9 @@ var ImageSources []fig.Rect = []fig.Rect {
 var ShotCommand    = []ginput.InputBits {ginput.Nkey1, ginput.Key1}
 var JumpCommand    = []ginput.InputBits {ginput.Nkey2, ginput.Key2}
 
+const JumpPower float64 = 13
+const MoveSpeed float64 = 7
+
 type Gun struct {
 	fig.FloatPoint
 	FaceDirection funcs.FaceDirection
@@ -45,9 +49,9 @@ func (me *Gun) Point() (fig.FloatPoint) {
 
 func (me *Gun) Direction() (radian.Radian) {
 	if me.FaceDirection == funcs.FaceLeft {
-		return radian.Left()
+		return gradian.Left()
 	} else {
-		return radian.Right()
+		return gradian.Right()
 	}
 }
 
@@ -76,7 +80,9 @@ type Player struct {
 	Blackout      bool
 	BlackoutTimer   *timer.Frame
 	CurrentSrc    fig.Rect
-	V             *move.FallingInertia
+	Gravity       *funcs.Gravity
+	V             *move.Vector
+	Xinertia      *move.Inertia
 	InputBits     ginput.InputBits
 	Kbuffer       *kcmd.Buffer
 	Endurance     int
@@ -91,7 +97,7 @@ func (me *Player) Point() (fig.FloatPoint) {
 }
 
 func (me *Player) Direction() (radian.Radian) {
-	return radian.Up()
+	return me.V.Radian()
 }
 
 func (me *Player) Update(trigger event.Trigger) {
@@ -120,19 +126,23 @@ func (me *Player) Update(trigger event.Trigger) {
 		}
 
 		if bits.And(ginput.Left) {
-			me.V.Radian = radian.Left()
+			me.V.Degree.Deg = 180
 		} else if bits.And(ginput.Right) {
-			me.V.Radian = radian.Right()
+			me.V.Degree.Deg = 0
 		}
 
 		if bits.Or(ginput.Left | ginput.Right) {
-			me.V.Accel()
-			me.Anime.Update()
 			if bits.Or(ginput.Left) {
+				me.V.Degree.Deg = 180
 				me.FaceDirection = funcs.FaceLeft
 			} else {
+				me.V.Degree.Deg = 0
 				me.FaceDirection = funcs.FaceRight
 			}
+			me.V.Accel(0.4)
+			me.Anime.Update()
+		} else {
+			me.V.Frictional(0.2)
 		}
 
 		if kcmd.Check(ShotCommand, me.Kbuffer, 1) {
@@ -146,14 +156,16 @@ func (me *Player) Update(trigger event.Trigger) {
 
 		if me.CanJump && kcmd.Check(JumpCommand, me.Kbuffer, 1) {
 			trigger.EventTrigger(eventid.Jump, nil, me)
-			me.V.Jump(17)
+			me.Gravity.Jump(JumpPower)
 		}
 
-		me.V.Fall()
-		me.V.Chafe(0.4)
-		p := me.V.Power()
-		me.X += p.X
-		me.Y += p.Y
+		me.Gravity.Update()
+		me.Xinertia.Accel(me.V.X())
+		me.Xinertia.Update()
+
+		me.X += me.Xinertia.Value()
+		me.Y += me.Gravity.Value()
+
 		world.SetPlayer(me)
 	}
 }
@@ -184,6 +196,7 @@ func (me *Player) SetPoint(pt fig.FloatPoint) {
 }
 
 func (me *Player) HitRects() ([]fig.Rect) {
+	//x, y := int(me.X) + AdjustX, int(me.Y) + AdjustY
 	x, y := int(me.X) + AdjustX, int(me.Y) + AdjustY
 	return []fig.Rect{{x, y, x + Width, y + Height}}
 }
@@ -192,52 +205,42 @@ func (me *Player) Hit(origin action.Object) {
 	if me.Blackout || me.Beaten {
 	} else {
 		me.Beaten = true
-		me.V.Jump(13)
 		if origin.Point().X > me.X {
-			me.V.Left.Accel(me.V.Left.MaxPower)
+			me.Xinertia.Backward.Rate = me.V.Max
 		} else {
-			me.V.Right.Accel(me.V.Right.MaxPower)
+			me.Xinertia.Advance.Rate = me.V.Max
 		}
+		me.Gravity.Jump(JumpPower / 1.4)
 	}
-/*
-	if me.Beaten {
-	} else {
-		me.Beaten = true
-		me.BlackoutTimer.Start(60)
-		me.V.Jump(13)
-		if origin.Point().X > me.X {
-			me.V.Left.Accel(me.V.Left.MaxPower)
-		} else {
-			me.V.Right.Accel(me.V.Right.MaxPower)
-		}
-	}
-	*/
 }
 
 func (me *Player) HitWall(origin action.Object) {
 }
 
 func (me *Player) Expel(hitWalls []fig.Rect) {
-	pt, status := me.FallingRects.HitWall(me.FloatPoint.ToInt(), me.V.Power(), hitWalls)
+	descend := me.Gravity.Value() >= 0
+	pt, status := me.FallingRects.HitWall(me.FloatPoint, descend, hitWalls)
 
 	if (status & funcs.WallTop) != 0 {
-		me.V.JumpCancel()
+		me.Gravity.JumpCancel()
 	}
 
 	if (status & funcs.WallBottom) != 0 {
 		me.CanJump = true
-		me.V.JumpCancel()
+		me.Gravity.Landing()
 	} else {
 		me.CanJump = false
 	}
 
+/*
 	if (status & funcs.WallLeft) != 0 {
-		me.V.Left.Reset()
+		me.Xinertia.Backward.Reset()
 	}
 
 	if (status & funcs.WallRight) != 0 {
-		me.V.Right.Reset()
+		me.Xinertia.Advance.Reset()
 	}
+	*/
 
 	me.FloatPoint = pt.ToFloat()
 }
@@ -254,7 +257,10 @@ func New(pt fig.FloatPoint) (*Player) {
 
 	return &Player{
 		FloatPoint: pt,
-		V:          move.NewFallingInertia(radian.Right(), 0, 0.7, 7),
+		Gravity:    funcs.NewGravity(),
+		//Jump:       move.NewForce(JumpPower),
+		V:          move.NewVector(0, 7),
+		Xinertia:   move.NewInertia(0.25),
 		Kbuffer:    &kcmd.Buffer{},
 		Endurance:  100,
 		Anime:      anime.NewFrames(8, 8),

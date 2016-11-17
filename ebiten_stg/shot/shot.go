@@ -5,6 +5,7 @@ import (
 	"github.com/ikuo0/game/lib/action"
 	"github.com/ikuo0/game/lib/event"
 	"github.com/ikuo0/game/lib/fig"
+	"github.com/ikuo0/game/lib/gradian"
 	"github.com/ikuo0/game/lib/move"
 	"github.com/ikuo0/game/lib/radian"
 	"github.com/ikuo0/game/lib/script"
@@ -20,7 +21,7 @@ var SrcShot = fig.Rect {0, 66, 0 + 60, 66 + 66}
 type Shot struct {
 	fig.FloatPoint
 	Vanished   bool
-	V          *move.Constant
+	V          *move.FixedVector
 	Endurance  int
 }
 
@@ -29,13 +30,13 @@ func (me *Shot) Point() (fig.FloatPoint) {
 }
 
 func (me *Shot) Direction() (radian.Radian) {
-	return radian.Up()
+	return gradian.Up()
 }
 
 func (me *Shot) Update(trigger event.Trigger) {
-	p := me.V.Power()
-	me.X += p.X
-	me.Y += p.Y
+	me.V.Accel(32)
+	me.X += me.V.X()
+	me.Y += me.V.Y()
 }
 
 func (me *Shot) Vanish() {
@@ -75,7 +76,7 @@ func (me *Shot) Stack() (*script.Stack) {
 func NewShot(pt fig.FloatPoint) (*Shot) {
 	return &Shot{
 		FloatPoint: pt,
-		V:          move.NewConstant(radian.Up(), 32),
+		V:          move.NewFixedVector(gradian.Up(), 32),
 		Endurance:  6,
 	}
 }

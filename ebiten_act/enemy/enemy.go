@@ -37,7 +37,9 @@ type Enemy struct {
 	ReadyTimer    *timer.Frame
 	FaceDirection funcs.FaceDirection
 	Vanished      bool
-	V             *move.FallingInertia
+	Gravity       *funcs.Gravity
+	V             *move.Vector
+	Xinertia      *move.Inertia
 	Endurance     int
 	Dead          bool
 	Anime         *anime.Frames
@@ -51,16 +53,16 @@ func (me *Enemy) Point() (fig.FloatPoint) {
 }
 
 func (me *Enemy) Direction() (radian.Radian) {
-	return radian.Up()
+	return 0
 }
 
 func (me *Enemy) FacingLeft() {
-	me.V.Radian = radian.Left()
+	me.V.Degree.Deg = 180
 	me.FaceDirection = funcs.FaceLeft
 }
 
 func (me *Enemy) FacingRight() {
-	me.V.Radian = radian.Right()
+	me.V.Degree.Deg = 0
 	me.FaceDirection = funcs.FaceRight
 }
 
@@ -78,15 +80,16 @@ func (me *Enemy) Update(trigger event.Trigger) {
 		}
 
 		if me.CanJump {
-			me.V.Accel()
+			me.V.Accel(0.4)
+			me.Xinertia.Set(me.V.X())
 		}
 
 		me.Anime.Update()
-		me.V.Fall()
-		me.V.Chafe(0.2)
-		p := me.V.Power()
-		me.X += p.X
-		me.Y += p.Y
+		me.Gravity.Update()
+		me.Xinertia.Update()
+
+		me.X += me.Xinertia.Value()
+		me.Y += me.Gravity.Value()
 	}
 }
 
@@ -124,26 +127,26 @@ func (me *Enemy) HitWall(origin action.Object) {
 }
 
 func (me *Enemy) Expel(hitWalls []fig.Rect) {
-	pt, status := me.FallingRects.HitWall(me.FloatPoint.ToInt(), me.V.Power(), hitWalls)
+	pt, status := me.FallingRects.HitWall(me.FloatPoint, true, hitWalls)
 
 	if (status & funcs.WallTop) != 0 {
-		me.V.JumpCancel()
+		me.Gravity.JumpCancel()
 	}
 
 	if (status & funcs.WallBottom) != 0 {
 		me.CanJump = true
-		me.V.JumpCancel()
+		me.Gravity.Landing()
 	} else {
 		me.CanJump = false
 	}
 
 	if (status & funcs.WallLeft) != 0 {
-		me.V.Left.Reset()
+		//me.Xinertia.Backward.Reset()
 		me.FacingRight()
 	}
 
 	if (status & funcs.WallRight) != 0 {
-		me.V.Right.Reset()
+		//me.Xinertia.Advance.Reset()
 		me.FacingLeft()
 	}
 
@@ -159,20 +162,22 @@ func (me *Enemy) Stack() (*script.Stack) {
 }
 
 func New(config funcs.EnemyConfig) (*Enemy) {
-	d := radian.Radian(0)
+	deg := int(0)
 	fd := funcs.FaceDirection(0)
 	if config.Direction == funcs.FaceLeft {
-		d = radian.Left()
+		deg = 180
 		fd = funcs.FaceLeft
 	} else {
-		d = radian.Right()
+		deg = 0
 		fd = funcs.FaceRight
 	}
 
 	return &Enemy{
 		Config:        config,
 		FloatPoint:    config.Point,
-		V:             move.NewFallingInertia(d, 0, 0.7, 5),
+		Gravity:       funcs.NewGravity(),
+		V:             move.NewVector(deg, 5),
+		Xinertia:      move.NewInertia(0.4),
 		FaceDirection: fd,
 		Endurance:     1,
 		Anime:         anime.NewFrames(7, 7),

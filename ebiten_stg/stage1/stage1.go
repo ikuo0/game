@@ -2,6 +2,7 @@
 package stage1
 
 import (
+	myaction "github.com/ikuo0/game/ebiten_stg/action"
 	"github.com/ikuo0/game/ebiten_stg/bullet"
 	"github.com/ikuo0/game/ebiten_stg/enemy"
 	"github.com/ikuo0/game/ebiten_stg/explosion"
@@ -184,7 +185,7 @@ func (me *Stage1) Update() {
 		action.HitCheck(me.Player, me.Bullet1)
 		action.HitCheck(me.Player, me.Heli1)
 		action.HitCheck(me.Player, me.Heli2)
-		action.CarryPress(me.Sheld, me.Shot)
+		myaction.CarryPress(me.Sheld, me.Shot)
 		action.InScreen(me.Inner, me.Player)
 		action.GoOutside(me.Outer, me.Heli1, me.Heli2, me.Aide1, me.Aide2, me.Boss1, me.Shot, me.Sheld, me.Bullet1)
 		action.Clean(me.Heli1, me.Heli2, me.Aide1, me.Aide2, me.Boss1, me.Player, me.Shot, me.Sheld, me.Vanishing1, me.Explosion1, me.Bullet1)
@@ -432,6 +433,7 @@ func New(args scene.Parameter) (scene.Interface) {
 			script.NewEventProc(eventid.Player, fig.FloatPoint{250, 400}),
 			script.NewEventProc(eventid.BgmPlay, fig.FloatPoint{250, 400}),
 			script.NewWaitProc(30),
+			script.NewJumpProc(7),
 			script.NewEventProc(eventid.Heli1, fig.FloatPoint{100, 0}),
 			script.NewWaitProc(3),
 			script.NewEventProc(eventid.Heli1, fig.FloatPoint{110, 0}),

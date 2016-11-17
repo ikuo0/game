@@ -43,9 +43,10 @@ var bullet1Source = []fig.Rect {
 
 type Bullet1 struct {
 	fig.FloatPoint
-	V *move.Accel
-	Anime *anime.Frames
-	Vanished bool
+	Radian    radian.Radian
+	V         *move.FixedVector
+	Anime     *anime.Frames
+	Vanished  bool
 	Endurance int
 }
 
@@ -54,7 +55,7 @@ func (me *Bullet1) Point() (fig.FloatPoint) {
 }
 
 func (me *Bullet1) Direction() (radian.Radian) {
-	return me.V.Radian
+	return me.Radian
 }
 
 func (me *Bullet1) Update(trigger event.Trigger) {
@@ -62,10 +63,9 @@ func (me *Bullet1) Update(trigger event.Trigger) {
 		me.Vanish()
 		trigger.EventTrigger(eventid.Vanishing1, nil, me)
 	} else {
-		me.V.Accel()
-		p := me.V.Power()
-		me.X += p.X
-		me.Y += p.Y
+		me.V.Accel(0.2)
+		me.X += me.V.X()
+		me.Y += me.V.Y()
 		me.Anime.Update()
 	}
 }
@@ -96,7 +96,8 @@ func (me *Bullet1) Hit(obj action.Object) {
 func NewBullet1(pt fig.FloatPoint, direction radian.Radian) (*Bullet1) {
 	return &Bullet1 {
 		FloatPoint: pt,
-		V:          move.NewAccel(direction, 1, 0.5, 6),
+		Radian:     direction,
+		V:          move.NewFixedVector(direction, 6),
 		Anime:      anime.NewFrames(15, 15, 15, 15),
 		Endurance:  1,
 	}

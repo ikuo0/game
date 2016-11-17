@@ -9,6 +9,7 @@ import (
 	"github.com/ikuo0/game/lib/event"
 	"github.com/ikuo0/game/lib/fig"
 	"github.com/ikuo0/game/lib/ginput"
+	"github.com/ikuo0/game/lib/gradian"
 	"github.com/ikuo0/game/lib/kcmd"
 	"github.com/ikuo0/game/lib/move"
 	"github.com/ikuo0/game/lib/radian"
@@ -30,17 +31,18 @@ var SheldCommand   = []ginput.InputBits {ginput.Nkey2, ginput.Key2}
 
 type Player struct {
 	fig.FloatPoint
-	Vanished   bool
-	CurrentSrc fig.Rect
-	V          *move.Inertia
-	InputBits  ginput.InputBits
-	Kbuffer    *kcmd.Buffer
-	FireFrame  int
-	Endurance  int
-	Dead       bool
+	Vanished    bool
+	CurrentSrc  fig.Rect
+	V           *move.Vector
+	XYcomponent *move.XYcomponent
+	InputBits   ginput.InputBits
+	Kbuffer     *kcmd.Buffer
+	FireFrame   int
+	Endurance   int
+	Dead        bool
 	ReamExplosion *effect.ReamExplosion
-	Invisible  *timer.Frame
-	NowEntry   *timer.Frame
+	Invisible   *timer.Frame
+	NowEntry    *timer.Frame
 }
 
 func (me *Player) Point() (fig.FloatPoint) {
@@ -48,7 +50,7 @@ func (me *Player) Point() (fig.FloatPoint) {
 }
 
 func (me *Player) Direction() (radian.Radian) {
-	return radian.Up()
+	return gradian.Up()
 }
 
 func (me *Player) Update(trigger event.Trigger) {
@@ -66,25 +68,28 @@ func (me *Player) Update(trigger event.Trigger) {
 		bits := me.InputBits
 
 		if bits.And(ginput.Left | ginput.Up) {
-			me.V.Radian = radian.LeftUp()
+			me.V.Degree.Deg = 135
 		} else if bits.And(ginput.Left | ginput.Down) {
-			me.V.Radian = radian.LeftDown()
+			me.V.Degree.Deg = -135
 		} else if bits.And(ginput.Right | ginput.Up) {
-			me.V.Radian = radian.RightUp()
+			me.V.Degree.Deg = 45
 		} else if bits.And(ginput.Right | ginput.Down) {
-			me.V.Radian = radian.RightDown()
+			me.V.Degree.Deg = -45
 		} else if bits.And(ginput.Left) {
-			me.V.Radian = radian.Left()
+			me.V.Degree.Deg = 180
 		} else if bits.And(ginput.Down) {
-			me.V.Radian = radian.Down()
+			me.V.Degree.Deg = -90
 		} else if bits.And(ginput.Right) {
-			me.V.Radian = radian.Right()
+			me.V.Degree.Deg = 0
 		} else if bits.And(ginput.Up) {
-			me.V.Radian = radian.Up()
+			me.V.Degree.Deg = 90
 		}
 
 		if bits.Or(ginput.AxisMask) {
-			me.V.Accel()
+			me.V.Accel(7)
+			me.XYcomponent.Set(me.V.X(), me.V.Y())
+		} else {
+			//me.V.Frictional(0.2)
 		}
 
 		me.Kbuffer.Update(bits)
@@ -101,8 +106,8 @@ func (me *Player) Update(trigger event.Trigger) {
 			trigger.EventTrigger(eventid.Sheld, nil, me)
 		}
 
-		me.V.Chafe(0.2)
-		p := me.V.Power()
+		me.XYcomponent.Update()
+		p := me.XYcomponent.Power()
 		me.X += p.X
 		me.Y += p.Y
 
@@ -168,7 +173,8 @@ func (me *Player) SetCurrentSrc(p float64) {
 func NewPlayer(pt fig.FloatPoint) (*Player) {
 	return &Player{
 		FloatPoint: pt,
-		V:          move.NewInertia(radian.Up(), 0, 0.6, 7),
+		V:           move.NewVector(90, 7),
+		XYcomponent: move.NewXYcomponent(0.2),
 		Kbuffer:    &kcmd.Buffer{},
 		Endurance:  100,
 		Invisible:  timer.NewFrame(180),

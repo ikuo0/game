@@ -151,27 +151,6 @@ func HitWall(subjective LawsOfPhisics, allWalls ...CanHit) {
 }
 
 //########################################
-//# CarryPress
-//########################################
-type CanPress interface {
-	Len() (int)
-	HitRects(int) ([]fig.Rect)
-	Pushed(int)
-	GetObject(int) (Object)
-}
-
-func CarryPress(subjective CanPress, objective CanHit) {
-	for a := 0; a < subjective.Len(); a++ {
-		for b := 0; b < objective.Len(); b++ {
-			if IsHit(subjective.HitRects(a), objective.HitRects(b)) {
-				subjective.Pushed(a)
-				objective.Hit(b, subjective.GetObject(a))
-			}
-		}
-	}
-}
-
-//########################################
 //# OutScreen
 //########################################
 type InTheScreen interface {

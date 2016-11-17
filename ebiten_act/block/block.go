@@ -8,7 +8,6 @@ import (
 	"github.com/ikuo0/game/lib/event"
 	"github.com/ikuo0/game/lib/script"
 	"github.com/ikuo0/game/lib/fig"
-	"github.com/ikuo0/game/lib/move"
 	"github.com/ikuo0/game/lib/radian"
 	"github.com/ikuo0/game/lib/timer"
 	//"fmt"
@@ -29,8 +28,6 @@ var ImageSource = []fig.Rect {
 
 type Block struct {
 	fig.FloatPoint
-	V         *move.Inertia
-	MyStack   script.Stack
 }
 
 func (me *Block) Point() (fig.FloatPoint) {
@@ -38,7 +35,7 @@ func (me *Block) Point() (fig.FloatPoint) {
 }
 
 func (me *Block) Direction() (radian.Radian) {
-	return me.V.Radian
+	return 0
 }
 
 func (me *Block) Update(trigger event.Trigger) {
@@ -66,7 +63,7 @@ func (me *Block) Hit(obj action.Object) {
 }
 
 func (me *Block) Stack() (*script.Stack) {
-	return &me.MyStack
+	return nil
 }
 
 func NewBlock(pt fig.FloatPoint) (*Block) {

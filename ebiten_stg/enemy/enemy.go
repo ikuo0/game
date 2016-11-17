@@ -6,12 +6,13 @@ import (
 	"github.com/ikuo0/game/ebiten_stg/effect"
 	"github.com/ikuo0/game/ebiten_stg/world"
 	"github.com/ikuo0/game/lib/action"
-	"github.com/ikuo0/game/lib/event"
-	"github.com/ikuo0/game/lib/script"
 	"github.com/ikuo0/game/lib/anime"
+	"github.com/ikuo0/game/lib/event"
 	"github.com/ikuo0/game/lib/fig"
+	"github.com/ikuo0/game/lib/gradian"
 	"github.com/ikuo0/game/lib/move"
 	"github.com/ikuo0/game/lib/radian"
+	"github.com/ikuo0/game/lib/script"
 	"github.com/ikuo0/game/lib/timer"
 	"math"
 	"math/rand"
@@ -37,7 +38,7 @@ var heli0Source = []fig.Rect {
 
 type Heli0 struct {
 	fig.FloatPoint
-	V         *move.Inertia
+	V         *move.Vector
 	Anime     *anime.Frames
 	Vanished  bool
 	Endurance int
@@ -50,7 +51,7 @@ func (me *Heli0) Point() (fig.FloatPoint) {
 }
 
 func (me *Heli0) Direction() (radian.Radian) {
-	return me.V.Radian
+	return me.V.Radian()
 }
 
 func (me *Heli0) Update(trigger event.Trigger) {
@@ -58,12 +59,11 @@ func (me *Heli0) Update(trigger event.Trigger) {
 		me.Vanish()
 		trigger.EventTrigger(eventid.Explosion1, nil, me)
 	} else {
-		me.V.Accel()
-		p := me.V.Power()
-		me.X += p.X
-		me.Y += p.Y
+		me.V.Accel(0.4)
+		me.X += me.V.X()
+		me.Y += me.V.Y()
 		me.Anime.Update()
-		me.V.Radian = me.V.Radian.TurnLeft(1)
+		me.V.TurnLeft(1)
 	}
 }
 
@@ -113,7 +113,7 @@ func (me *Heli0) Stack() (*script.Stack) {
 func NewHeli0(pt fig.FloatPoint) (*Heli0) {
 	return &Heli0 {
 		FloatPoint: pt,
-		V:          move.NewInertia(radian.Down(), 1, 0.4, 8),
+		V:          move.NewVector(8, -90),
 		Anime:      anime.NewFrames(4, 4),
 		Endurance:  10,
 	}
@@ -129,24 +129,24 @@ type Heli1 struct {
 func (me *Heli1) Update(trigger event.Trigger) {
 	if me.SuperUpdate(trigger) {
 		aim := world.GetPlayer().Point()
-		aimRad := radian.Radian(math.Atan2(me.Y - aim.Y, me.X - aim.X))
+		//aimRad := radian.Radian(math.Atan2(me.Y - aim.Y, me.X - aim.X))
+		aimRad := gradian.Aim(me.FloatPoint, aim)
 
-		a := me.V.Radian - aimRad
+		a := me.V.Radian() - aimRad
 		lr := a <= math.Pi && a >= -math.Pi
 		if a < 0 {
 			lr = !lr
 		}
 
 		if lr {
-			me.V.Radian = me.V.Radian.TurnRight(1)
+			me.V.TurnRight(1)
 		} else {
-			me.V.Radian = me.V.Radian.TurnLeft(1)
+			me.V.TurnLeft(1)
 		}
 
-		me.V.Accel()
-		p := me.V.Power()
-		me.X += p.X
-		me.Y += p.Y
+		me.V.Accel(0.4)
+		me.X += me.V.X()
+		me.Y += me.V.Y()
 		me.Anime.Update()
 	}
 }
@@ -155,7 +155,7 @@ func NewHeli1(pt fig.FloatPoint) (*Heli1) {
 	return &Heli1 {
 		Heli0: Heli0 {
 			FloatPoint: pt,
-			V:          move.NewInertia(radian.Down(), 1, 0.4, 8),
+			V:          move.NewVector(-90, 8),
 			Anime:      anime.NewFrames(4, 4),
 			Endurance:  1,
 			Timer:      timer.NewFrame(rand.Intn(30) + 15),
@@ -172,10 +172,9 @@ type Heli2 struct {
 
 func (me *Heli2) Update(trigger event.Trigger) {
 	if me.SuperUpdate(trigger) {
-		me.V.Accel()
-		p := me.V.Power()
-		me.X += p.X
-		me.Y += p.Y
+		me.V.Accel(0.3)
+		me.X += me.V.X()
+		me.Y += me.V.Y()
 		me.Anime.Update()
 	}
 }
@@ -184,7 +183,7 @@ func NewHeli2(pt fig.FloatPoint) (*Heli2) {
 	return &Heli2 {
 		Heli0: Heli0 {
 			FloatPoint: pt,
-			V:          move.NewInertia(radian.Down(), 0, 0.3, 8),
+			V:          move.NewVector(-90, 8),
 			Anime:      anime.NewFrames(4, 4),
 			Endurance:  2,
 			Timer:      timer.NewFrame(rand.Intn(30) + 15),
@@ -196,14 +195,14 @@ func NewHeli2(pt fig.FloatPoint) (*Heli2) {
 //# Aide
 //########################################
 var AideScript = script.NewSource([]script.Proc {
-	script.NewEventProc(eventid.Bullet1, radian.FromDeg(-8)),
-	script.NewEventProc(eventid.Bullet1, radian.FromDeg(0)),
-	script.NewEventProc(eventid.Bullet1, radian.FromDeg(8)),
+	script.NewEventProc(eventid.Bullet1, gradian.DegreeToRadian(-8)),
+	script.NewEventProc(eventid.Bullet1, gradian.DegreeToRadian(0)),
+	script.NewEventProc(eventid.Bullet1, gradian.DegreeToRadian(8)),
 	script.NewWaitProc(10),
-	script.NewEventProc(eventid.Bullet1, radian.FromDeg(-12)),
-	script.NewEventProc(eventid.Bullet1, radian.FromDeg(-4)),
-	script.NewEventProc(eventid.Bullet1, radian.FromDeg(4)),
-	script.NewEventProc(eventid.Bullet1, radian.FromDeg(12)),
+	script.NewEventProc(eventid.Bullet1, gradian.DegreeToRadian(-12)),
+	script.NewEventProc(eventid.Bullet1, gradian.DegreeToRadian(-4)),
+	script.NewEventProc(eventid.Bullet1, gradian.DegreeToRadian(4)),
+	script.NewEventProc(eventid.Bullet1, gradian.DegreeToRadian(12)),
 	script.NewWaitProc(120),
 	script.NewJumpProc(0),
 })
@@ -220,7 +219,7 @@ var SrcAide = []fig.Rect {
 type Aide struct {
 	fig.FloatPoint
 	MyStack      script.Stack
-	Radian       radian.Radian
+	Degree       gradian.Degree
 	Vanished     bool
 	Dead         bool
 	Endurance    int
@@ -232,7 +231,7 @@ func (me *Aide) Point() (fig.FloatPoint) {
 }
 
 func (me *Aide) Direction() (radian.Radian) {
-	return me.Radian
+	return me.Degree.Radian()
 }
 
 func (me *Aide) Update(trigger event.Trigger) {
@@ -247,16 +246,16 @@ func (me *Aide) Update(trigger event.Trigger) {
 		aim := world.GetPlayer().Point()
 		aimRad := radian.Radian(math.Atan2(me.Y - aim.Y, me.X - aim.X))
 
-		a := me.Radian - aimRad
+		a := me.Degree.Radian() - aimRad
 		lr := a <= math.Pi && a >= -math.Pi
 		if a < 0 {
 			lr = !lr
 		}
 
 		if lr {
-			me.Radian = me.Radian.TurnRight(1)
+			me.Degree.TurnRight(1)
 		} else {
-			me.Radian = me.Radian.TurnLeft(1)
+			me.Degree.TurnLeft(1)
 		}
 	}
 }
