@@ -63,14 +63,14 @@ func NewAnimeFrame(frames ...int) (*AnimeFrames) {
 }
 
 type Enemy struct {
-	fig.FloatPoint
+	fig.Point
 	V *move.Vector
 	Anime *AnimeFrames
 	Vanished bool
 }
 
-func (me *Enemy) Point() (fig.FloatPoint) {
-	return me.FloatPoint
+func (me *Enemy) GetPoint() (fig.Point) {
+	return me.Point
 }
 
 func (me *Enemy) Direction() (radian.Radian) {
@@ -108,7 +108,7 @@ func (me *Enemy) AnimeIndex() (int) {
 
 func NewEnemy(x, y float64) (*Enemy) {
 	return &Enemy {
-		FloatPoint: fig.FloatPoint{x, y},
+		Point: fig.Point{x, y},
 		//V:          move.NewAccel(radian.Down(), 1, 0.4, 8),
 		V:          move.NewAccel((90 * math.Pi) / 180, 1, 0.4, 8),
 		Anime:      NewAnimeFrame(4, 4),

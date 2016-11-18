@@ -26,7 +26,7 @@ const Height = 64
 const AdjustX = -24
 const AdjustY = -64
 
-var ImageSources []fig.Rect = []fig.Rect {
+var ImageSources []fig.IntRect = []fig.IntRect {
 	{0, 0, 48, 64},
 	{48, 0, 48 + 48, 64},
 	{48, 0, 0, 64},
@@ -40,11 +40,11 @@ const JumpPower float64 = 13
 const MoveSpeed float64 = 7
 
 type Gun struct {
-	fig.FloatPoint
+	fig.Point
 	FaceDirection funcs.FaceDirection
 }
-func (me *Gun) Point() (fig.FloatPoint) {
-	return me.FloatPoint
+func (me *Gun) GetPoint() (fig.Point) {
+	return me.Point
 }
 
 func (me *Gun) Direction() (radian.Radian) {
@@ -55,23 +55,23 @@ func (me *Gun) Direction() (radian.Radian) {
 	}
 }
 
-func (me *Gun) SetPoint(pt fig.FloatPoint) {
+func (me *Gun) SetPoint(pt fig.Point) {
 	me.X = pt.X
 	me.Y = pt.Y - 32
 }
 
-func (me *Gun) SetLeft(pt fig.FloatPoint) {
+func (me *Gun) SetLeft(pt fig.Point) {
 	me.SetPoint(pt)
 	me.FaceDirection = funcs.FaceLeft
 }
 
-func (me *Gun) SetRight(pt fig.FloatPoint) {
+func (me *Gun) SetRight(pt fig.Point) {
 	me.SetPoint(pt)
 	me.FaceDirection = funcs.FaceRight
 }
 
 type Player struct {
-	fig.FloatPoint
+	fig.Point
 	FaceDirection funcs.FaceDirection
 	Vanished      bool
 	Dead          bool
@@ -92,8 +92,8 @@ type Player struct {
 	Gun           Gun
 }
 
-func (me *Player) Point() (fig.FloatPoint) {
-	return me.FloatPoint
+func (me *Player) GetPoint() (fig.Point) {
+	return me.Point
 }
 
 func (me *Player) Direction() (radian.Radian) {
@@ -147,9 +147,9 @@ func (me *Player) Update(trigger event.Trigger) {
 
 		if kcmd.Check(ShotCommand, me.Kbuffer, 1) {
 			if me.FaceDirection == funcs.FaceLeft {
-				me.Gun.SetLeft(me.FloatPoint)
+				me.Gun.SetLeft(me.Point)
 			} else {
-				me.Gun.SetRight(me.FloatPoint)
+				me.Gun.SetRight(me.Point)
 			}
 			trigger.EventTrigger(eventid.Shot, &me.Gun, me)
 		}
@@ -191,13 +191,13 @@ func (me *Player) Dst() (x0, y0, x1, y1 int) {
 func (me *Player) SetInput(bits ginput.InputBits) {
 	me.InputBits = bits
 }
-func (me *Player) SetPoint(pt fig.FloatPoint) {
-	me.FloatPoint = pt
+func (me *Player) SetPoint(pt fig.Point) {
+	me.Point = pt
 }
 
 func (me *Player) HitRects() ([]fig.Rect) {
 	//x, y := int(me.X) + AdjustX, int(me.Y) + AdjustY
-	x, y := int(me.X) + AdjustX, int(me.Y) + AdjustY
+	x, y := me.X + AdjustX, me.Y + AdjustY
 	return []fig.Rect{{x, y, x + Width, y + Height}}
 }
 
@@ -205,7 +205,7 @@ func (me *Player) Hit(origin action.Object) {
 	if me.Blackout || me.Beaten {
 	} else {
 		me.Beaten = true
-		if origin.Point().X > me.X {
+		if origin.GetPoint().X > me.X {
 			me.Xinertia.Backward.Rate = me.V.Max
 		} else {
 			me.Xinertia.Advance.Rate = me.V.Max
@@ -219,7 +219,7 @@ func (me *Player) HitWall(origin action.Object) {
 
 func (me *Player) Expel(hitWalls []fig.Rect) {
 	descend := me.Gravity.Value() >= 0
-	pt, status := me.FallingRects.HitWall(me.FloatPoint, descend, hitWalls)
+	pt, status := me.FallingRects.HitWall(me.Point, descend, hitWalls)
 
 	if (status & funcs.WallTop) != 0 {
 		me.Gravity.JumpCancel()
@@ -242,21 +242,21 @@ func (me *Player) Expel(hitWalls []fig.Rect) {
 	}
 	*/
 
-	me.FloatPoint = pt.ToFloat()
+	me.Point = pt
 }
 
 func (me *Player) Stack() (*script.Stack) {
 	return nil
 }
 
-func New(pt fig.FloatPoint) (*Player) {
-	hitWidth := 32
-	hitHeight := 64
+func New(pt fig.Point) (*Player) {
+	hitWidth := float64(32)
+	hitHeight := float64(64)
 	hitAdjustX := -(hitWidth / 2)
-	hitAdjustY := -64
+	hitAdjustY := float64(-64)
 
 	return &Player{
-		FloatPoint: pt,
+		Point: pt,
 		Gravity:    funcs.NewGravity(),
 		//Jump:       move.NewForce(JumpPower),
 		V:          move.NewVector(0, 7),
@@ -274,7 +274,7 @@ func New(pt fig.FloatPoint) (*Player) {
 //########################################
 type Interface interface {
 	action.Object
-	SetPoint(fig.FloatPoint)
+	SetPoint(fig.Point)
 	HitWall(action.Object)
 	Expel([]fig.Rect)
 	SetInput(ginput.InputBits)
@@ -300,7 +300,7 @@ func (me *Objects) SetInput(i int, bits ginput.InputBits) {
 	me.Get(i).SetInput(bits)
 }
 
-func (me *Objects) SetPoint(i int, pt fig.FloatPoint) {
+func (me *Objects) SetPoint(i int, pt fig.Point) {
 	me.Get(i).SetPoint(pt)
 }
 

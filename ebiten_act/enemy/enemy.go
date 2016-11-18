@@ -23,7 +23,7 @@ const AdjustX = -32
 const AdjustY = -43
 
 //128, 43
-var ImageSources []fig.Rect = []fig.Rect {
+var ImageSources []fig.IntRect = []fig.IntRect {
 	{0, 0, 64, 43},
 	{64, 0, 64 + 64, 43},
 	{64, 0, 0, 43},
@@ -31,7 +31,7 @@ var ImageSources []fig.Rect = []fig.Rect {
 }
 
 type Enemy struct {
-	fig.FloatPoint
+	fig.Point
 	Config        funcs.EnemyConfig
 	Ready         bool
 	ReadyTimer    *timer.Frame
@@ -48,8 +48,8 @@ type Enemy struct {
 	DeadTimer     *timer.Frame
 }
 
-func (me *Enemy) Point() (fig.FloatPoint) {
-	return me.FloatPoint
+func (me *Enemy) GetPoint() (fig.Point) {
+	return me.Point
 }
 
 func (me *Enemy) Direction() (radian.Radian) {
@@ -68,7 +68,7 @@ func (me *Enemy) FacingRight() {
 
 func (me *Enemy) Update(trigger event.Trigger) {
 	if me.Dead {
-		trigger.EventTrigger(eventid.Explosion1, me.FloatPoint, nil)
+		trigger.EventTrigger(eventid.Explosion1, me.Point, nil)
 		me.Vanish()
 	} else if !me.Ready {
 		if me.ReadyTimer.Up() {
@@ -112,7 +112,7 @@ func (me *Enemy) Dst() (x0, y0, x1, y1 int) {
 	return x, y, x + Width, y + Height
 }
 func (me *Enemy) HitRects() ([]fig.Rect) {
-	x, y := int(me.X) + AdjustX, int(me.Y) + AdjustY
+	x, y := me.X + AdjustX, me.Y + AdjustY
 	return []fig.Rect{{x, y, x + Width, y + Height}}
 }
 
@@ -127,7 +127,7 @@ func (me *Enemy) HitWall(origin action.Object) {
 }
 
 func (me *Enemy) Expel(hitWalls []fig.Rect) {
-	pt, status := me.FallingRects.HitWall(me.FloatPoint, true, hitWalls)
+	pt, status := me.FallingRects.HitWall(me.Point, true, hitWalls)
 
 	if (status & funcs.WallTop) != 0 {
 		me.Gravity.JumpCancel()
@@ -151,9 +151,9 @@ func (me *Enemy) Expel(hitWalls []fig.Rect) {
 	}
 
 	if !me.Ready {
-		me.FloatPoint.Y -= 0.5
+		me.Point.Y -= 0.5
 	} else {
-		me.FloatPoint = pt.ToFloat()
+		me.Point = pt
 	}
 }
 
@@ -174,7 +174,7 @@ func New(config funcs.EnemyConfig) (*Enemy) {
 
 	return &Enemy{
 		Config:        config,
-		FloatPoint:    config.Point,
+		Point:    config.Point,
 		Gravity:       funcs.NewGravity(),
 		V:             move.NewVector(deg, 5),
 		Xinertia:      move.NewInertia(0.4),

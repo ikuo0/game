@@ -119,10 +119,10 @@ func (me *RotaObjects) DrawOption(i int) (*ebiten.DrawImageOptions) {
 	}
 
 	o := me.Objs[i]
-	pt := o.Point()
-	opt.GeoM.Translate(-pt.X, -pt.Y)
+	pt := o.GetPoint()
+	opt.GeoM.Translate(float64(-pt.X), float64(-pt.Y))
 	opt.GeoM.Rotate(float64(o.Direction()))
-	opt.GeoM.Translate(pt.X, pt.Y)
+	opt.GeoM.Translate(float64(pt.X), float64(pt.Y))
 	return &opt
 }
 
@@ -147,7 +147,7 @@ func (me *HitObjects) Src(i int) (x0, y0, x1, y1 int) {
 }
 func (me *HitObjects) Dst(i int) (x0, y0, x1, y1 int) {
 	r := me.Objs[i]
-	return r.Left, r.Top, r.Right, r.Bottom
+	return int(r.Left), int(r.Top), int(r.Right), int(r.Bottom)
 }
 func (me *HitObjects) Options() (*ebiten.DrawImageOptions) {
 	return &ebiten.DrawImageOptions {

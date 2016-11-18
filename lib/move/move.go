@@ -179,6 +179,11 @@ func (me *XYcomponent) Set(x, y float64) {
 	me.Yinertia.Set(y)
 }
 
+func (me *XYcomponent) Accel(x, y float64) {
+	me.Xinertia.Accel(x)
+	me.Yinertia.Accel(y)
+}
+
 func (me *XYcomponent) Power() (XYpower) {
 	return XYpower {
 		X: me.Xinertia.Value(),

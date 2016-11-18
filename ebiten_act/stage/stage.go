@@ -148,8 +148,8 @@ func LoadImage(fileName string) *ebiten.Image {
 	}
 }
 
-func (me *Stage1) Point() (fig.FloatPoint) {
-	return fig.FloatPoint{0, 0}
+func (me *Stage1) GetPoint() (fig.Point) {
+	return fig.Point{0, 0}
 }
 
 func (me *Stage1) Direction() (radian.Radian) {
@@ -255,19 +255,19 @@ func (me *Stage1) Draw(screen *ebiten.Image) {
 func (me *Stage1) EventTrigger(id event.Id, argument interface{}, origin orig.Interface) {
 	switch id {
 		case eventid.Block:
-			me.Block.Occure(block.NewBlock(argument.(fig.FloatPoint)))
+			me.Block.Occure(block.NewBlock(argument.(fig.Point)))
 
 		case eventid.OccureBlock:
 			me.OccureBlock.Occure(block.NewOccureBlock(argument.(block.Config)))
 
 		case eventid.Player:
-			me.PlayerEntity = player.New(argument.(fig.FloatPoint))
+			me.PlayerEntity = player.New(argument.(fig.Point))
 			me.Player.Occure(me.PlayerEntity)
 
 		case eventid.Shot:
 			me.Sound.Shot.Play(0)
 			o := argument.(orig.Interface)
-			me.Shot.Occure(shot.New(o.Point(), o.Direction()))
+			me.Shot.Occure(shot.New(o.GetPoint(), o.Direction()))
 
 		case eventid.Jump:
 			me.Sound.Jump.Play(0)
@@ -284,11 +284,11 @@ func (me *Stage1) EventTrigger(id event.Id, argument interface{}, origin orig.In
 
 		case eventid.Explosion1:
 			me.Sound.Explosion.Play(0)
-			pt := argument.(fig.FloatPoint)
+			pt := argument.(fig.Point)
 			me.Explosion1.Occure(explosion.NewExplosion1(pt))
 
 		case eventid.Vortex:
-			pt := argument.(fig.FloatPoint)
+			pt := argument.(fig.Point)
 			me.Vortex.Occure(vortex.New(pt))
 
 /*
@@ -360,39 +360,39 @@ func CreateStageScript(src MapData) ([]script.Proc) {
 		for x, v := range line {
 			x, y := float64(x * 32), float64(y * 32)
 			if v == 1 {
-				pt := fig.FloatPoint{x, y}
+				pt := fig.Point{x, y}
 				res = append(res, script.NewEventProc(eventid.Block, pt))
 			} else if v == 2 {
 				config := block.Config {
-					Point:           fig.FloatPoint{x, y},
+					Point:           fig.Point{x, y},
 					Span:            240,
 					OccureDirection: block.OccureLeft,
 				}
 				res = append(res, script.NewEventProc(eventid.OccureBlock, config))
 			} else if v == 3 {
 				config := block.Config {
-					Point:           fig.FloatPoint{x, y},
+					Point:           fig.Point{x, y},
 					Span:            240,
 					OccureDirection: block.OccureRight,
 				}
 				res = append(res, script.NewEventProc(eventid.OccureBlock, config))
 			} else if v == 4 {
 				config := block.Config {
-					Point:           fig.FloatPoint{x, y},
+					Point:           fig.Point{x, y},
 					Span:            240,
 					OccureDirection: block.OccureRand,
 				}
 				res = append(res, script.NewEventProc(eventid.OccureBlock, config))
 			} else if v == 8 {
-				res = append(res, script.NewEventProc(eventid.Vortex, fig.FloatPoint{x, y}))
+				res = append(res, script.NewEventProc(eventid.Vortex, fig.Point{x, y}))
 			} else if v == 9 {
-				res = append(res, script.NewEventProc(eventid.Player, fig.FloatPoint{x, y}))
+				res = append(res, script.NewEventProc(eventid.Player, fig.Point{x, y}))
 			}
 		}
 	}
-	//res = append(res, script.NewEventProc(eventid.Player, fig.FloatPoint{100, 100}))
+	//res = append(res, script.NewEventProc(eventid.Player, fig.Point{100, 100}))
 
-	//res = append(res, script.NewEventProc(eventid.Enemy, fig.FloatPoint{740, 0}))
+	//res = append(res, script.NewEventProc(eventid.Enemy, fig.Point{740, 0}))
 
 	res = append(res, script.NewWaitProc(1))
 	res = append(res, script.NewJumpProc(len(res)))
@@ -439,7 +439,7 @@ func New(args scene.Parameter) (scene.Interface) {
 	hitImage, _ := ebiten.NewImage(1, 1, ebiten.FilterLinear)
 	hitImage.Fill(color.RGBA{0xff, 0x00, 0x00, 0x77})
 
-	panelRect := fig.Rect {0, 0, 800, 32}
+	panelRect := fig.IntRect {0, 0, 800, 32}
 
 	conf := global.KeyConfig()
 	if e1 := conf.Load(global.Path().KeyConfig()); e1 != nil {

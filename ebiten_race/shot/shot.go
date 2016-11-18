@@ -18,14 +18,14 @@ import (
 //########################################
 var SrcShot = fig.Rect {0, 66, 0 + 60, 66 + 66}
 type Shot struct {
-	fig.FloatPoint
+	fig.Point
 	Vanished   bool
 	V          *move.Constant
 	Endurance  int
 }
 
-func (me *Shot) Point() (fig.FloatPoint) {
-	return me.FloatPoint
+func (me *Shot) GetPoint() (fig.Point) {
+	return me.Point
 }
 
 func (me *Shot) Direction() (radian.Radian) {
@@ -51,8 +51,8 @@ func (me *Shot) Dst() (x0, y0, x1, y1 int) {
 	x, y := int(me.X) - 24, int(me.Y) - 30
 	return x, y, x + 48, y + 60
 }
-func (me *Shot) SetPoint(pt fig.FloatPoint) {
-	me.FloatPoint = pt
+func (me *Shot) SetPoint(pt fig.Point) {
+	me.Point = pt
 }
 func (me *Shot) HitRects() ([]fig.Rect) {
 	if me.Endurance <= 0 {
@@ -72,9 +72,9 @@ func (me *Shot) Stack() (*script.Stack) {
 	return nil
 }
 
-func NewShot(pt fig.FloatPoint) (*Shot) {
+func NewShot(pt fig.Point) (*Shot) {
 	return &Shot{
-		FloatPoint: pt,
+		Point: pt,
 		V:          move.NewConstant(radian.Up(), 32),
 		Endurance:  6,
 	}

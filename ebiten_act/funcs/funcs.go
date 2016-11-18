@@ -34,6 +34,7 @@ type Gravity struct {
 	*move.Gravity
 }
 
+/*
 func (me *Gravity) Value() (float64) {
 // 重力が小数点時、整数になるまで落下判定で着地できなくなるため+１未満は１にする
 	if res := me.Gravity.Value(); res > 0 && res < 1 {
@@ -42,6 +43,7 @@ func (me *Gravity) Value() (float64) {
 		return res
 	}
 }
+*/
 
 func NewGravity() (*Gravity) {
 	return &Gravity {
@@ -72,8 +74,8 @@ type FallingRects struct {
 	Foot fig.Rect
 }
 
-func (me *FallingRects) HitWall(fpt fig.FloatPoint, descend bool, walls []fig.Rect) (fig.Point, WallStatus) {
-	pt := fpt.ToInt()
+func (me *FallingRects) HitWall(pt fig.Point, descend bool, walls []fig.Rect) (fig.Point, WallStatus) {
+	//pt := fpt.ToInt()
 	status := WallNone
 
 	global.RectDebug.Clear()
@@ -118,7 +120,7 @@ func (me *FallingRects) HitWall(fpt fig.FloatPoint, descend bool, walls []fig.Re
 	return pt, status
 }
 
-func NewFallingRects(width, height, adjustX, adjustY int) (*FallingRects) {
+func NewFallingRects(width, height, adjustX, adjustY float64) (*FallingRects) {
 	w1 := width
 	w2 := width / 2
 	w4 := width / 4
@@ -142,6 +144,6 @@ func NewFallingRects(width, height, adjustX, adjustY int) (*FallingRects) {
 //# Enemy Occure
 //########################################
 type EnemyConfig struct {
-	Point     fig.FloatPoint
+	Point     fig.Point
 	Direction FaceDirection
 }

@@ -36,7 +36,7 @@ var heli0Source = []fig.Rect {
 }
 
 type Heli0 struct {
-	fig.FloatPoint
+	fig.Point
 	V         *move.Inertia
 	Anime     *anime.Frames
 	Vanished  bool
@@ -45,8 +45,8 @@ type Heli0 struct {
 	Timer     *timer.Frame
 }
 
-func (me *Heli0) Point() (fig.FloatPoint) {
-	return me.FloatPoint
+func (me *Heli0) GetPoint() (fig.Point) {
+	return me.Point
 }
 
 func (me *Heli0) Direction() (radian.Radian) {
@@ -75,7 +75,7 @@ func (me *Heli0) SuperUpdate(trigger event.Trigger) (bool) {
 		return false
 	} else {
 		if me.Timer.Up() {
-			aim := world.GetPlayer().Point()
+			aim := world.GetPlayer().GetPoint()
 			aimRad := radian.Radian(math.Atan2(aim.Y - me.Y, aim.X - me.X))
 			trigger.EventTrigger(eventid.Bullet2, aimRad, me)
 			me.Timer.Start(10000)
@@ -110,9 +110,9 @@ func (me *Heli0) Stack() (*script.Stack) {
 	return &me.MyStack
 }
 
-func NewHeli0(pt fig.FloatPoint) (*Heli0) {
+func NewHeli0(pt fig.Point) (*Heli0) {
 	return &Heli0 {
-		FloatPoint: pt,
+		Point: pt,
 		V:          move.NewInertia(radian.Down(), 1, 0.4, 8),
 		Anime:      anime.NewFrames(4, 4),
 		Endurance:  10,
@@ -128,7 +128,7 @@ type Heli1 struct {
 
 func (me *Heli1) Update(trigger event.Trigger) {
 	if me.SuperUpdate(trigger) {
-		aim := world.GetPlayer().Point()
+		aim := world.GetPlayer().GetPoint()
 		aimRad := radian.Radian(math.Atan2(me.Y - aim.Y, me.X - aim.X))
 
 		a := me.V.Radian - aimRad
@@ -151,10 +151,10 @@ func (me *Heli1) Update(trigger event.Trigger) {
 	}
 }
 
-func NewHeli1(pt fig.FloatPoint) (*Heli1) {
+func NewHeli1(pt fig.Point) (*Heli1) {
 	return &Heli1 {
 		Heli0: Heli0 {
-			FloatPoint: pt,
+			Point: pt,
 			V:          move.NewInertia(radian.Down(), 1, 0.4, 8),
 			Anime:      anime.NewFrames(4, 4),
 			Endurance:  1,
@@ -180,10 +180,10 @@ func (me *Heli2) Update(trigger event.Trigger) {
 	}
 }
 
-func NewHeli2(pt fig.FloatPoint) (*Heli2) {
+func NewHeli2(pt fig.Point) (*Heli2) {
 	return &Heli2 {
 		Heli0: Heli0 {
-			FloatPoint: pt,
+			Point: pt,
 			V:          move.NewInertia(radian.Down(), 0, 0.3, 8),
 			Anime:      anime.NewFrames(4, 4),
 			Endurance:  2,
@@ -218,7 +218,7 @@ var SrcAide = []fig.Rect {
 }
 
 type Aide struct {
-	fig.FloatPoint
+	fig.Point
 	MyStack      script.Stack
 	Radian       radian.Radian
 	Vanished     bool
@@ -227,8 +227,8 @@ type Aide struct {
 	ReamExplosion *effect.ReamExplosion
 }
 
-func (me *Aide) Point() (fig.FloatPoint) {
-	return me.FloatPoint
+func (me *Aide) GetPoint() (fig.Point) {
+	return me.Point
 }
 
 func (me *Aide) Direction() (radian.Radian) {
@@ -244,7 +244,7 @@ func (me *Aide) Update(trigger event.Trigger) {
 	} else {
 		script.Exec(AideScript, &me.MyStack, me, trigger)
 
-		aim := world.GetPlayer().Point()
+		aim := world.GetPlayer().GetPoint()
 		aimRad := radian.Radian(math.Atan2(me.Y - aim.Y, me.X - aim.X))
 
 		a := me.Radian - aimRad
@@ -288,15 +288,15 @@ func (me *Aide) Hit(obj action.Object) {
 	me.Endurance--
 	if me.Endurance <= 0 {
 		me.Dead = true
-		me.ReamExplosion = effect.NewReamExplosion(64, 60, me.FloatPoint)
+		me.ReamExplosion = effect.NewReamExplosion(64, 60, me.Point)
 	}
 }
 func (me *Aide) Stack() (*script.Stack) {
 	return &me.MyStack
 }
-func NewAide(pt fig.FloatPoint) (*Aide) {
+func NewAide(pt fig.Point) (*Aide) {
 	return &Aide {
-		FloatPoint: pt,
+		Point: pt,
 		Endurance:  40,
 	}
 }
@@ -331,7 +331,7 @@ func (me *Boss1) Update(trigger event.Trigger) {
 	} else {
 		script.Exec(AideScript, &me.MyStack, me, trigger)
 
-		aim := world.GetPlayer().Point()
+		aim := world.GetPlayer().GetPoint()
 		aimRad := radian.Radian(math.Atan2(me.Y - aim.Y, me.X - aim.X))
 
 		a := me.Radian - aimRad
@@ -366,10 +366,10 @@ func (me *Boss1) HitRects() ([]fig.Rect) {
 	}
 }
 
-func NewBoss1(pt fig.FloatPoint) (*Boss1) {
+func NewBoss1(pt fig.Point) (*Boss1) {
 	return &Boss1 {
 		Aide: &Aide {
-			FloatPoint: pt,
+			Point: pt,
 			Endurance:  400,
 		},
 	}

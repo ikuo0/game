@@ -27,18 +27,18 @@ const CollisionWidth = 24
 const CollisionHeight = 24
 const CollisionAdjustX = -12
 const CollisionAdjustY = -12
-var ImageSrc = fig.Rect {0, 0, Width, Height}
+var ImageSrc = fig.IntRect {0, 0, Width, Height}
 
 type Player struct {
-	fig.FloatPoint
-	PrePoint   fig.FloatPoint
+	fig.Point
+	PrePoint   fig.Point
 	V           *move.Vector
 	XYcomponent *move.XYcomponent
 	InputBits  ginput.InputBits
 }
 
-func (me *Player) Point() (fig.FloatPoint) {
-	return me.FloatPoint
+func (me *Player) GetPoint() (fig.Point) {
+	return me.Point
 }
 
 func (me *Player) Direction() (radian.Radian) {
@@ -47,7 +47,7 @@ func (me *Player) Direction() (radian.Radian) {
 
 func (me *Player) Update(trigger event.Trigger) {
 	world.SetPlayer(me)
-	me.PrePoint = me.FloatPoint
+	me.PrePoint = me.Point
 
 	bits := me.InputBits
 
@@ -92,7 +92,7 @@ func (me *Player) SetInput(bits ginput.InputBits) {
 	me.InputBits = bits
 }
 func (me *Player) HitRects() ([]fig.Rect) {
-	x, y := int(me.X) + CollisionAdjustX, int(me.Y) + CollisionAdjustY
+	x, y := me.X + CollisionAdjustX, me.Y + CollisionAdjustY
 	return []fig.Rect{{x, y, x + CollisionWidth, y + CollisionHeight}}
 }
 
@@ -100,19 +100,18 @@ func (me *Player) Hit(obj action.Object) {
 	if rects := obj.HitRects(); len(rects) != 1 {
 		return
 	} else {
-		return
 		rect := rects[0]
-		ptFrom := me.PrePoint.ToInt()
-		ptTo := me.FloatPoint.ToInt()
+		ptFrom := me.PrePoint
+		ptTo := me.Point
 		myVector := fig.PointToLine(ptFrom, ptTo)
 		if ptFrom.Equal(ptTo) {
-			fmt.Println("Equal")
-			return
+			//fmt.Println("Equal")
+			//return
 		} else {
 			//fmt.Println(myVector)
 		}
 
-		myRad := gradian.Aim(me.PrePoint, me.FloatPoint)
+		myRad := gradian.Aim(me.PrePoint, me.Point)
 
 		var wallRad radian.Radian
 		if rect.LeftLine().Hit(&myVector) {
@@ -131,14 +130,15 @@ func (me *Player) Hit(obj action.Object) {
 			wallRad = myRad + (math.Pi / 2)
 		}
 
-		fmt.Println("wallRad", wallRad, radian.ToDeg(wallRad))
+		//fmt.Println("wallRad", wallRad, radian.ToDeg(wallRad))
+		me.V.Degree.Deg = gradian.RadianToDegree(myRad - wallRad)
 
 /*
 		reflectRad := myRad - wallRad
 		fmt.Println(radian.ToDeg(myRad), radian.ToDeg(wallRad), radian.ToDeg(reflectRad))
 */
 		/*
-		aim := me.FloatPoint
+		aim := me.Point
 		from := me.PrePoint
 		aimRad := radian.Radian(math.Atan2(aim.Y - from.Y, aim.X - from.X))
 		*/
@@ -154,8 +154,8 @@ func (me *Player) Hit(obj action.Object) {
 
 	
 /*
-	aim := me.FloatPoint
-	orig := obj.Point()
+	aim := me.Point
+	orig := obj.GetPoint()
 	aimRad := radian.Radian(math.Atan2(aim.Y - orig.Y, aim.X - orig.X))
 	*/
 	//me.V.Radian = me.V.Radian + math.Pi
@@ -179,7 +179,7 @@ func (me *Player) Hit(obj action.Object) {
 	s := math.Sin(float64(me.Radian))
 */
 /*
-			aim := world.GetPlayer().Point()
+			aim := world.GetPlayer().GetPoint()
 			aimRad := radian.Radian(math.Atan2(aim.Y - me.Y, aim.X - me.X))
 			trigger.EventTrigger(eventid.Bullet2, aimRad, me)
 			me.Timer.Start(10000)
@@ -190,9 +190,9 @@ func (me *Player) Stack() (*script.Stack) {
 }
 
 const MaxSpeed float64 = 6
-func NewPlayer(pt fig.FloatPoint) (*Player) {
+func NewPlayer(pt fig.Point) (*Player) {
 	return &Player{
-		FloatPoint:  pt,
+		Point:  pt,
 		V:           move.NewVector(90, MaxSpeed),
 		XYcomponent: move.NewXYcomponent(0.05),
 	}

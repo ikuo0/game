@@ -7,6 +7,6 @@ import (
 )
 
 type Interface interface {
-	Point() (fig.FloatPoint)
+	GetPoint() (fig.Point)
 	Direction() (radian.Radian)
 }

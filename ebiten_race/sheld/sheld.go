@@ -20,14 +20,14 @@ import (
 //########################################
 var SrcSheld = fig.Rect {64, 64, 64 + 320, 64 + 320}
 type Sheld struct {
-	fig.FloatPoint
+	fig.Point
 	Vanished   bool
 	Anime     *anime.Frames
 	V          *move.Accel
 }
 
-func (me *Sheld) Point() (fig.FloatPoint) {
-	return me.FloatPoint
+func (me *Sheld) GetPoint() (fig.Point) {
+	return me.Point
 }
 
 func (me *Sheld) Direction() (radian.Radian) {
@@ -59,8 +59,8 @@ func (me *Sheld) Dst() (x0, y0, x1, y1 int) {
 	x, y := int(me.X) - adjust, int(me.Y) - adjust
 	return x, y, x + width, y + width
 }
-func (me *Sheld) SetPoint(pt fig.FloatPoint) {
-	me.FloatPoint = pt
+func (me *Sheld) SetPoint(pt fig.Point) {
+	me.Point = pt
 }
 func (me *Sheld) HitRects() ([]fig.Rect) {
 	if me.IsVanish() {
@@ -82,9 +82,9 @@ func (me *Sheld) Stack() (*script.Stack) {
 	return nil
 }
 
-func NewSheld(pt fig.FloatPoint) (*Sheld) {
+func NewSheld(pt fig.Point) (*Sheld) {
 	return &Sheld{
-		FloatPoint: pt,
+		Point: pt,
 		Anime:      anime.NewFrames(8, 7, 3, 2, 8),
 		V:          move.NewAccel(radian.Up(), 0.1, 0.1, 0.7),
 	}

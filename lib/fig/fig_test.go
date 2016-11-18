@@ -25,6 +25,32 @@ func BenchmarkIntToInt(b *testing.B) {
 	fmt.Println("end", x)
 }
 
+func BenchmarkFloatComp(b *testing.B) {
+	fmt.Println("start")
+	l := float64(1)
+	m := float64(2)
+	n := float64(0)
+	for i := int(0); i < b.N; i++ {
+		if l < m {
+			n = l - m
+		}
+	}
+	fmt.Println("end", n)
+}
+
+func BenchmarkIntComp(b *testing.B) {
+	fmt.Println("start")
+	l := int(1)
+	m := int(2)
+	n := int(0)
+	for i := int(0); i < b.N; i++ {
+		if l < m {
+			n = l - m
+		}
+	}
+	fmt.Println("end", n)
+}
+
 
 func Test(t *testing.T) {
 	a := Rect {0, 0, 10, 10}

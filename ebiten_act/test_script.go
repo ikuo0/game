@@ -39,30 +39,30 @@ func NewSource() (*Source) {
 	return &Source {
 		Procs: []script.Proc {
 			script.NewWaitProc(20),
-			script.NewEventProc(event.Enemy2, fig.FloatPoint{100, 64}),
-			script.NewEventProc(event.Enemy2, fig.FloatPoint{400, 64}),
+			script.NewEventProc(event.Enemy2, fig.Point{100, 64}),
+			script.NewEventProc(event.Enemy2, fig.Point{400, 64}),
 			script.NewWaitProc(30),
-			script.NewEventProc(event.Player, fig.FloatPoint{250, 400}),
+			script.NewEventProc(event.Player, fig.Point{250, 400}),
 			script.NewWaitProc(30),
-			script.NewEventProc(event.Enemy1, fig.FloatPoint{100, 0}),
+			script.NewEventProc(event.Enemy1, fig.Point{100, 0}),
 			script.NewWaitProc(3),
-			script.NewEventProc(event.Enemy1, fig.FloatPoint{110, 0}),
+			script.NewEventProc(event.Enemy1, fig.Point{110, 0}),
 			script.NewWaitProc(3),
-			script.NewEventProc(event.Enemy1, fig.FloatPoint{120, 0}),
+			script.NewEventProc(event.Enemy1, fig.Point{120, 0}),
 			script.NewWaitProc(3),
-			script.NewEventProc(event.Enemy1, fig.FloatPoint{130, 0}),
+			script.NewEventProc(event.Enemy1, fig.Point{130, 0}),
 			script.NewWaitProc(3),
-			script.NewEventProc(event.Enemy1, fig.FloatPoint{140, 0}),
+			script.NewEventProc(event.Enemy1, fig.Point{140, 0}),
 			script.NewWaitProc(3),
-			script.NewEventProc(event.Enemy1, fig.FloatPoint{150, 0}),
+			script.NewEventProc(event.Enemy1, fig.Point{150, 0}),
 			script.NewWaitProc(3),
-			script.NewEventProc(event.Enemy1, fig.FloatPoint{160, 0}),
+			script.NewEventProc(event.Enemy1, fig.Point{160, 0}),
 			script.NewWaitProc(3),
-			script.NewEventProc(event.Enemy1, fig.FloatPoint{170, 0}),
+			script.NewEventProc(event.Enemy1, fig.Point{170, 0}),
 			script.NewWaitProc(3),
-			script.NewEventProc(event.Enemy1, fig.FloatPoint{180, 0}),
+			script.NewEventProc(event.Enemy1, fig.Point{180, 0}),
 			script.NewWaitProc(3),
-			script.NewEventProc(event.Enemy1, fig.FloatPoint{190, 0}),
+			script.NewEventProc(event.Enemy1, fig.Point{190, 0}),
 			script.NewWaitProc(180),
 			script.NewJumpProc(5),
 		},
@@ -102,8 +102,8 @@ func LoadImage(fileName string) *ebiten.Image {
 	}
 }
 
-func (me *Scene) Point() (fig.FloatPoint) {
-	return fig.FloatPoint{0, 0}
+func (me *Scene) GetPoint() (fig.Point) {
+	return fig.Point{0, 0}
 }
 
 func (me *Scene) Direction() (radian.Radian) {
@@ -134,23 +134,23 @@ func (me *Scene) Draw(screen *ebiten.Image) {
 func (me *Scene) EventTrigger(id event.Id, argument interface{}, origin orig.Interface) {
 	switch id {
 		case event.Player:
-			pt := argument.(fig.FloatPoint)
+			pt := argument.(fig.Point)
 			me.Player.Occure(player.NewPlayer(pt))
 
 		case event.Shot:
-			//pt := argument.(fig.FloatPoint)
-			me.Shot.Occure(player.NewShot(origin.Point()))
+			//pt := argument.(fig.Point)
+			me.Shot.Occure(player.NewShot(origin.GetPoint()))
 
 		case event.Enemy1:
-			pt := argument.(fig.FloatPoint)
+			pt := argument.(fig.Point)
 			me.Heli1.Occure(enemy.NewHeli1(pt))
 
 		case event.Enemy2:
-			pt := argument.(fig.FloatPoint)
+			pt := argument.(fig.Point)
 			me.Aide.Occure(enemy.NewAide(pt))
 
 		case event.Explosion1:
-			pt := origin.Point()
+			pt := origin.GetPoint()
 			me.Explosion1.Occure(explosion.NewExplosion1(pt))
 	}
 }

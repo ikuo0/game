@@ -145,8 +145,8 @@ func LoadImage(fileName string) *ebiten.Image {
 	}
 }
 
-func (me *Stage1) Point() (fig.FloatPoint) {
-	return fig.FloatPoint{0, 0}
+func (me *Stage1) GetPoint() (fig.Point) {
+	return fig.Point{0, 0}
 }
 
 func (me *Stage1) Direction() (radian.Radian) {
@@ -263,7 +263,7 @@ func (me *Stage1) Draw(screen *ebiten.Image) {
 func (me *Stage1) EventTrigger(id event.Id, argument interface{}, origin orig.Interface) {
 	switch id {
 		case eventid.Player:
-			me.PlayerEntity = player.NewPlayer(world.StartPoint())
+			me.PlayerEntity = player.NewPlayer(world.StartGetPoint())
 			me.Player.Occure(me.PlayerEntity)
 
 		case eventid.BgmPlay:
@@ -291,56 +291,56 @@ func (me *Stage1) EventTrigger(id event.Id, argument interface{}, origin orig.In
 			me.Result = result.New(strings.Split(msg, "\n"))
 
 		case eventid.Shot:
-			//pt := argument.(fig.FloatPoint)
-			me.Shot.Occure(shot.NewShot(origin.Point()))
+			//pt := argument.(fig.Point)
+			me.Shot.Occure(shot.NewShot(origin.GetPoint()))
 
 		case eventid.Sheld:
-			//pt := argument.(fig.FloatPoint)
+			//pt := argument.(fig.Point)
 			if me.Sheld.Len() < 3 {
-				me.Sheld.Occure(sheld.NewSheld(origin.Point()))
+				me.Sheld.Occure(sheld.NewSheld(origin.GetPoint()))
 			}
 
 		case eventid.Heli1:
-			pt := argument.(fig.FloatPoint)
+			pt := argument.(fig.Point)
 			me.Heli1.Occure(enemy.NewHeli1(pt))
 
 		case eventid.Heli2:
-			pt := argument.(fig.FloatPoint)
+			pt := argument.(fig.Point)
 			me.Heli2.Occure(enemy.NewHeli2(pt))
 
 		case eventid.Aide1:
-			pt := argument.(fig.FloatPoint)
+			pt := argument.(fig.Point)
 			me.Aide1.Occure(enemy.NewAide(pt))
 
 		case eventid.Aide2:
-			pt := argument.(fig.FloatPoint)
+			pt := argument.(fig.Point)
 			me.Aide2.Occure(enemy.NewAide(pt))
 
 		case eventid.Boss1:
-			pt := argument.(fig.FloatPoint)
+			pt := argument.(fig.Point)
 			me.Boss1Entity =enemy.NewBoss1(pt); 
 			me.Boss1.Occure(me.Boss1Entity)
 
 		case eventid.Bullet1:
 			rad := origin.Direction() + argument.(radian.Radian)
-			me.Bullet1.Occure(bullet.NewBullet1(origin.Point(), rad))
+			me.Bullet1.Occure(bullet.NewBullet1(origin.GetPoint(), rad))
 
 		case eventid.Bullet2:
 			rad := argument.(radian.Radian)
-			me.Bullet1.Occure(bullet.NewBullet1(origin.Point(), rad))
+			me.Bullet1.Occure(bullet.NewBullet1(origin.GetPoint(), rad))
 
 		case eventid.Explosion1:
 			me.Sound.Explosion.Play(0)
-			pt := origin.Point()
-			if relative, ok := argument.(fig.FloatPoint); ok {
+			pt := origin.GetPoint()
+			if relative, ok := argument.(fig.Point); ok {
 				pt.X += relative.X
 				pt.Y += relative.Y
 			}
 			me.Explosion1.Occure(explosion.NewExplosion1(pt))
 
 		case eventid.Vanishing1:
-			pt := origin.Point()
-			if relative, ok := argument.(fig.FloatPoint); ok {
+			pt := origin.GetPoint()
+			if relative, ok := argument.(fig.Point); ok {
 				pt.X += relative.X
 				pt.Y += relative.Y
 			}
@@ -372,7 +372,7 @@ func New(args scene.Parameter) (scene.Interface) {
 	hitImage, _ := ebiten.NewImage(1, 1, ebiten.FilterLinear)
 	hitImage.Fill(color.RGBA{0xff, 0x00, 0x00, 0x77})
 
-	panelRect := fig.Rect {500, 0, 800, 600}
+	panelRect := fig.IntRect {500, 0, 800, 600}
 
 	conf := global.KeyConfig()
 	if e1 := conf.Load(global.Path().KeyConfig()); e1 != nil {
@@ -425,173 +425,180 @@ func New(args scene.Parameter) (scene.Interface) {
 		Outer:       fig.Rect{-64, -64, 564, 664},
 
 		Source:      script.NewSource([]script.Proc {
+		/*
+			script.NewEventProc(eventid.Heli1, fig.Point{200, 0}),
+			script.NewWaitProc(1),
+			script.NewJumpProc(1),
+			*/
+
 			script.NewWaitProc(20),
-			script.NewEventProc(eventid.Boss1, fig.FloatPoint{250, 100}),
-			script.NewEventProc(eventid.Aide1, fig.FloatPoint{100, 64}),
-			script.NewEventProc(eventid.Aide1, fig.FloatPoint{400, 64}),
+			script.NewEventProc(eventid.Boss1, fig.Point{250, 100}),
+			script.NewEventProc(eventid.Aide1, fig.Point{100, 64}),
+			script.NewEventProc(eventid.Aide1, fig.Point{400, 64}),
 			script.NewWaitProc(30),
-			script.NewEventProc(eventid.Player, fig.FloatPoint{250, 400}),
-			script.NewEventProc(eventid.BgmPlay, fig.FloatPoint{250, 400}),
+			script.NewEventProc(eventid.Player, fig.Point{250, 400}),
+			script.NewEventProc(eventid.BgmPlay, fig.Point{250, 400}),
 			script.NewWaitProc(30),
-			script.NewJumpProc(7),
-			script.NewEventProc(eventid.Heli1, fig.FloatPoint{100, 0}),
+			//script.NewJumpProc(7),
+			script.NewEventProc(eventid.Heli1, fig.Point{100, 0}),
 			script.NewWaitProc(3),
-			script.NewEventProc(eventid.Heli1, fig.FloatPoint{110, 0}),
+			script.NewEventProc(eventid.Heli1, fig.Point{110, 0}),
 			script.NewWaitProc(3),
-			script.NewEventProc(eventid.Heli1, fig.FloatPoint{120, 0}),
+			script.NewEventProc(eventid.Heli1, fig.Point{120, 0}),
 			script.NewWaitProc(3),
-			script.NewEventProc(eventid.Heli1, fig.FloatPoint{130, 0}),
+			script.NewEventProc(eventid.Heli1, fig.Point{130, 0}),
 			script.NewWaitProc(3),
-			script.NewEventProc(eventid.Heli1, fig.FloatPoint{140, 0}),
+			script.NewEventProc(eventid.Heli1, fig.Point{140, 0}),
 			script.NewWaitProc(3),
-			script.NewEventProc(eventid.Heli1, fig.FloatPoint{150, 0}),
+			script.NewEventProc(eventid.Heli1, fig.Point{150, 0}),
 			script.NewWaitProc(3),
-			script.NewEventProc(eventid.Heli1, fig.FloatPoint{160, 0}),
+			script.NewEventProc(eventid.Heli1, fig.Point{160, 0}),
 			script.NewWaitProc(3),
-			script.NewEventProc(eventid.Heli1, fig.FloatPoint{170, 0}),
+			script.NewEventProc(eventid.Heli1, fig.Point{170, 0}),
 			script.NewWaitProc(3),
-			script.NewEventProc(eventid.Heli1, fig.FloatPoint{180, 0}),
+			script.NewEventProc(eventid.Heli1, fig.Point{180, 0}),
 			script.NewWaitProc(3),
-			script.NewEventProc(eventid.Heli1, fig.FloatPoint{190, 0}),
+			script.NewEventProc(eventid.Heli1, fig.Point{190, 0}),
 			script.NewWaitProc(30),
-			script.NewEventProc(eventid.Heli1, fig.FloatPoint{100, 0}),
+			script.NewEventProc(eventid.Heli1, fig.Point{100, 0}),
 			script.NewWaitProc(3),
-			script.NewEventProc(eventid.Heli1, fig.FloatPoint{110, 0}),
+			script.NewEventProc(eventid.Heli1, fig.Point{110, 0}),
 			script.NewWaitProc(3),
-			script.NewEventProc(eventid.Heli1, fig.FloatPoint{120, 0}),
+			script.NewEventProc(eventid.Heli1, fig.Point{120, 0}),
 			script.NewWaitProc(3),
-			script.NewEventProc(eventid.Heli1, fig.FloatPoint{130, 0}),
+			script.NewEventProc(eventid.Heli1, fig.Point{130, 0}),
 			script.NewWaitProc(3),
-			script.NewEventProc(eventid.Heli1, fig.FloatPoint{140, 0}),
+			script.NewEventProc(eventid.Heli1, fig.Point{140, 0}),
 			script.NewWaitProc(3),
-			script.NewEventProc(eventid.Heli1, fig.FloatPoint{150, 0}),
+			script.NewEventProc(eventid.Heli1, fig.Point{150, 0}),
 			script.NewWaitProc(3),
-			script.NewEventProc(eventid.Heli1, fig.FloatPoint{160, 0}),
+			script.NewEventProc(eventid.Heli1, fig.Point{160, 0}),
 			script.NewWaitProc(3),
-			script.NewEventProc(eventid.Heli1, fig.FloatPoint{170, 0}),
+			script.NewEventProc(eventid.Heli1, fig.Point{170, 0}),
 			script.NewWaitProc(3),
-			script.NewEventProc(eventid.Heli1, fig.FloatPoint{180, 0}),
+			script.NewEventProc(eventid.Heli1, fig.Point{180, 0}),
 			script.NewWaitProc(3),
-			script.NewEventProc(eventid.Heli1, fig.FloatPoint{190, 0}),
+			script.NewEventProc(eventid.Heli1, fig.Point{190, 0}),
 			script.NewWaitProc(30),
-			script.NewEventProc(eventid.Heli1, fig.FloatPoint{100, 0}),
+			script.NewEventProc(eventid.Heli1, fig.Point{100, 0}),
 			script.NewWaitProc(3),
-			script.NewEventProc(eventid.Heli1, fig.FloatPoint{110, 0}),
+			script.NewEventProc(eventid.Heli1, fig.Point{110, 0}),
 			script.NewWaitProc(3),
-			script.NewEventProc(eventid.Heli1, fig.FloatPoint{120, 0}),
+			script.NewEventProc(eventid.Heli1, fig.Point{120, 0}),
 			script.NewWaitProc(3),
-			script.NewEventProc(eventid.Heli1, fig.FloatPoint{130, 0}),
+			script.NewEventProc(eventid.Heli1, fig.Point{130, 0}),
 			script.NewWaitProc(3),
-			script.NewEventProc(eventid.Heli1, fig.FloatPoint{140, 0}),
+			script.NewEventProc(eventid.Heli1, fig.Point{140, 0}),
 			script.NewWaitProc(3),
-			script.NewEventProc(eventid.Heli1, fig.FloatPoint{150, 0}),
+			script.NewEventProc(eventid.Heli1, fig.Point{150, 0}),
 			script.NewWaitProc(3),
-			script.NewEventProc(eventid.Heli1, fig.FloatPoint{160, 0}),
+			script.NewEventProc(eventid.Heli1, fig.Point{160, 0}),
 			script.NewWaitProc(3),
-			script.NewEventProc(eventid.Heli1, fig.FloatPoint{170, 0}),
+			script.NewEventProc(eventid.Heli1, fig.Point{170, 0}),
 			script.NewWaitProc(3),
-			script.NewEventProc(eventid.Heli1, fig.FloatPoint{180, 0}),
+			script.NewEventProc(eventid.Heli1, fig.Point{180, 0}),
 			script.NewWaitProc(10),
-			script.NewEventProc(eventid.Heli1, fig.FloatPoint{0, 0}),
-			script.NewEventProc(eventid.Heli1, fig.FloatPoint{50, 0}),
-			script.NewEventProc(eventid.Heli1, fig.FloatPoint{100, 0}),
-			script.NewEventProc(eventid.Heli1, fig.FloatPoint{150, 0}),
-			script.NewEventProc(eventid.Heli1, fig.FloatPoint{200, 0}),
-			script.NewEventProc(eventid.Heli1, fig.FloatPoint{250, 0}),
-			script.NewEventProc(eventid.Heli1, fig.FloatPoint{300, 0}),
-			script.NewEventProc(eventid.Heli1, fig.FloatPoint{350, 0}),
-			script.NewEventProc(eventid.Heli1, fig.FloatPoint{400, 0}),
-			script.NewEventProc(eventid.Heli1, fig.FloatPoint{450, 0}),
-			script.NewEventProc(eventid.Heli1, fig.FloatPoint{500, 0}),
+			script.NewEventProc(eventid.Heli1, fig.Point{0, 0}),
+			script.NewEventProc(eventid.Heli1, fig.Point{50, 0}),
+			script.NewEventProc(eventid.Heli1, fig.Point{100, 0}),
+			script.NewEventProc(eventid.Heli1, fig.Point{150, 0}),
+			script.NewEventProc(eventid.Heli1, fig.Point{200, 0}),
+			script.NewEventProc(eventid.Heli1, fig.Point{250, 0}),
+			script.NewEventProc(eventid.Heli1, fig.Point{300, 0}),
+			script.NewEventProc(eventid.Heli1, fig.Point{350, 0}),
+			script.NewEventProc(eventid.Heli1, fig.Point{400, 0}),
+			script.NewEventProc(eventid.Heli1, fig.Point{450, 0}),
+			script.NewEventProc(eventid.Heli1, fig.Point{500, 0}),
 			script.NewWaitProc(10),
-			script.NewEventProc(eventid.Heli1, fig.FloatPoint{0, 0}),
-			script.NewEventProc(eventid.Heli1, fig.FloatPoint{50, 0}),
-			script.NewEventProc(eventid.Heli1, fig.FloatPoint{100, 0}),
-			script.NewEventProc(eventid.Heli1, fig.FloatPoint{150, 0}),
-			script.NewEventProc(eventid.Heli1, fig.FloatPoint{200, 0}),
-			script.NewEventProc(eventid.Heli1, fig.FloatPoint{250, 0}),
-			script.NewEventProc(eventid.Heli1, fig.FloatPoint{300, 0}),
-			script.NewEventProc(eventid.Heli1, fig.FloatPoint{350, 0}),
-			script.NewEventProc(eventid.Heli1, fig.FloatPoint{400, 0}),
-			script.NewEventProc(eventid.Heli1, fig.FloatPoint{450, 0}),
-			script.NewEventProc(eventid.Heli1, fig.FloatPoint{500, 0}),
+			script.NewEventProc(eventid.Heli1, fig.Point{0, 0}),
+			script.NewEventProc(eventid.Heli1, fig.Point{50, 0}),
+			script.NewEventProc(eventid.Heli1, fig.Point{100, 0}),
+			script.NewEventProc(eventid.Heli1, fig.Point{150, 0}),
+			script.NewEventProc(eventid.Heli1, fig.Point{200, 0}),
+			script.NewEventProc(eventid.Heli1, fig.Point{250, 0}),
+			script.NewEventProc(eventid.Heli1, fig.Point{300, 0}),
+			script.NewEventProc(eventid.Heli1, fig.Point{350, 0}),
+			script.NewEventProc(eventid.Heli1, fig.Point{400, 0}),
+			script.NewEventProc(eventid.Heli1, fig.Point{450, 0}),
+			script.NewEventProc(eventid.Heli1, fig.Point{500, 0}),
 			script.NewWaitProc(10),
-			script.NewEventProc(eventid.Heli1, fig.FloatPoint{0, 0}),
-			script.NewEventProc(eventid.Heli1, fig.FloatPoint{50, 0}),
-			script.NewEventProc(eventid.Heli1, fig.FloatPoint{100, 0}),
-			script.NewEventProc(eventid.Heli1, fig.FloatPoint{150, 0}),
-			script.NewEventProc(eventid.Heli1, fig.FloatPoint{200, 0}),
-			script.NewEventProc(eventid.Heli1, fig.FloatPoint{250, 0}),
-			script.NewEventProc(eventid.Heli1, fig.FloatPoint{300, 0}),
-			script.NewEventProc(eventid.Heli1, fig.FloatPoint{350, 0}),
-			script.NewEventProc(eventid.Heli1, fig.FloatPoint{400, 0}),
-			script.NewEventProc(eventid.Heli1, fig.FloatPoint{450, 0}),
-			script.NewEventProc(eventid.Heli1, fig.FloatPoint{500, 0}),
+			script.NewEventProc(eventid.Heli1, fig.Point{0, 0}),
+			script.NewEventProc(eventid.Heli1, fig.Point{50, 0}),
+			script.NewEventProc(eventid.Heli1, fig.Point{100, 0}),
+			script.NewEventProc(eventid.Heli1, fig.Point{150, 0}),
+			script.NewEventProc(eventid.Heli1, fig.Point{200, 0}),
+			script.NewEventProc(eventid.Heli1, fig.Point{250, 0}),
+			script.NewEventProc(eventid.Heli1, fig.Point{300, 0}),
+			script.NewEventProc(eventid.Heli1, fig.Point{350, 0}),
+			script.NewEventProc(eventid.Heli1, fig.Point{400, 0}),
+			script.NewEventProc(eventid.Heli1, fig.Point{450, 0}),
+			script.NewEventProc(eventid.Heli1, fig.Point{500, 0}),
 			script.NewWaitProc(10),
-			script.NewEventProc(eventid.Heli1, fig.FloatPoint{0, 0}),
-			script.NewEventProc(eventid.Heli1, fig.FloatPoint{50, 0}),
-			script.NewEventProc(eventid.Heli1, fig.FloatPoint{100, 0}),
-			script.NewEventProc(eventid.Heli1, fig.FloatPoint{150, 0}),
-			script.NewEventProc(eventid.Heli1, fig.FloatPoint{200, 0}),
-			script.NewEventProc(eventid.Heli1, fig.FloatPoint{250, 0}),
-			script.NewEventProc(eventid.Heli1, fig.FloatPoint{300, 0}),
-			script.NewEventProc(eventid.Heli1, fig.FloatPoint{350, 0}),
-			script.NewEventProc(eventid.Heli1, fig.FloatPoint{400, 0}),
-			script.NewEventProc(eventid.Heli1, fig.FloatPoint{450, 0}),
-			script.NewEventProc(eventid.Heli1, fig.FloatPoint{500, 0}),
+			script.NewEventProc(eventid.Heli1, fig.Point{0, 0}),
+			script.NewEventProc(eventid.Heli1, fig.Point{50, 0}),
+			script.NewEventProc(eventid.Heli1, fig.Point{100, 0}),
+			script.NewEventProc(eventid.Heli1, fig.Point{150, 0}),
+			script.NewEventProc(eventid.Heli1, fig.Point{200, 0}),
+			script.NewEventProc(eventid.Heli1, fig.Point{250, 0}),
+			script.NewEventProc(eventid.Heli1, fig.Point{300, 0}),
+			script.NewEventProc(eventid.Heli1, fig.Point{350, 0}),
+			script.NewEventProc(eventid.Heli1, fig.Point{400, 0}),
+			script.NewEventProc(eventid.Heli1, fig.Point{450, 0}),
+			script.NewEventProc(eventid.Heli1, fig.Point{500, 0}),
 			script.NewWaitProc(180),
-			script.NewEventProc(eventid.Heli2, fig.FloatPoint{20, 0}),
-			script.NewEventProc(eventid.Heli2, fig.FloatPoint{40, 0}),
-			script.NewEventProc(eventid.Heli2, fig.FloatPoint{60, 0}),
-			script.NewEventProc(eventid.Heli2, fig.FloatPoint{80, 0}),
-			script.NewEventProc(eventid.Heli2, fig.FloatPoint{100, 0}),
-			script.NewEventProc(eventid.Heli2, fig.FloatPoint{120, 0}),
-			script.NewEventProc(eventid.Heli2, fig.FloatPoint{140, 0}),
-			script.NewEventProc(eventid.Heli2, fig.FloatPoint{160, 0}),
-			script.NewEventProc(eventid.Heli2, fig.FloatPoint{180, 0}),
-			script.NewEventProc(eventid.Heli2, fig.FloatPoint{200, 0}),
-			script.NewEventProc(eventid.Heli2, fig.FloatPoint{220, 0}),
-			script.NewEventProc(eventid.Heli2, fig.FloatPoint{240, 0}),
-			script.NewEventProc(eventid.Heli2, fig.FloatPoint{260, 0}),
-			script.NewEventProc(eventid.Heli2, fig.FloatPoint{280, 0}),
-			script.NewEventProc(eventid.Heli2, fig.FloatPoint{300, 0}),
-			script.NewEventProc(eventid.Heli2, fig.FloatPoint{320, 0}),
-			script.NewEventProc(eventid.Heli2, fig.FloatPoint{340, 0}),
-			script.NewEventProc(eventid.Heli2, fig.FloatPoint{360, 0}),
-			script.NewEventProc(eventid.Heli2, fig.FloatPoint{380, 0}),
-			script.NewEventProc(eventid.Heli2, fig.FloatPoint{400, 0}),
-			script.NewEventProc(eventid.Heli2, fig.FloatPoint{420, 0}),
-			script.NewEventProc(eventid.Heli2, fig.FloatPoint{440, 0}),
-			script.NewEventProc(eventid.Heli2, fig.FloatPoint{460, 0}),
-			script.NewEventProc(eventid.Heli2, fig.FloatPoint{480, 0}),
-			script.NewEventProc(eventid.Heli2, fig.FloatPoint{500, 0}),
+			script.NewEventProc(eventid.Heli2, fig.Point{20, 0}),
+			script.NewEventProc(eventid.Heli2, fig.Point{40, 0}),
+			script.NewEventProc(eventid.Heli2, fig.Point{60, 0}),
+			script.NewEventProc(eventid.Heli2, fig.Point{80, 0}),
+			script.NewEventProc(eventid.Heli2, fig.Point{100, 0}),
+			script.NewEventProc(eventid.Heli2, fig.Point{120, 0}),
+			script.NewEventProc(eventid.Heli2, fig.Point{140, 0}),
+			script.NewEventProc(eventid.Heli2, fig.Point{160, 0}),
+			script.NewEventProc(eventid.Heli2, fig.Point{180, 0}),
+			script.NewEventProc(eventid.Heli2, fig.Point{200, 0}),
+			script.NewEventProc(eventid.Heli2, fig.Point{220, 0}),
+			script.NewEventProc(eventid.Heli2, fig.Point{240, 0}),
+			script.NewEventProc(eventid.Heli2, fig.Point{260, 0}),
+			script.NewEventProc(eventid.Heli2, fig.Point{280, 0}),
+			script.NewEventProc(eventid.Heli2, fig.Point{300, 0}),
+			script.NewEventProc(eventid.Heli2, fig.Point{320, 0}),
+			script.NewEventProc(eventid.Heli2, fig.Point{340, 0}),
+			script.NewEventProc(eventid.Heli2, fig.Point{360, 0}),
+			script.NewEventProc(eventid.Heli2, fig.Point{380, 0}),
+			script.NewEventProc(eventid.Heli2, fig.Point{400, 0}),
+			script.NewEventProc(eventid.Heli2, fig.Point{420, 0}),
+			script.NewEventProc(eventid.Heli2, fig.Point{440, 0}),
+			script.NewEventProc(eventid.Heli2, fig.Point{460, 0}),
+			script.NewEventProc(eventid.Heli2, fig.Point{480, 0}),
+			script.NewEventProc(eventid.Heli2, fig.Point{500, 0}),
 			script.NewWaitProc(20),
-			script.NewEventProc(eventid.Heli2, fig.FloatPoint{20, 0}),
-			script.NewEventProc(eventid.Heli2, fig.FloatPoint{40, 0}),
-			script.NewEventProc(eventid.Heli2, fig.FloatPoint{60, 0}),
-			script.NewEventProc(eventid.Heli2, fig.FloatPoint{80, 0}),
-			script.NewEventProc(eventid.Heli2, fig.FloatPoint{100, 0}),
-			script.NewEventProc(eventid.Heli2, fig.FloatPoint{120, 0}),
-			script.NewEventProc(eventid.Heli2, fig.FloatPoint{140, 0}),
-			script.NewEventProc(eventid.Heli2, fig.FloatPoint{160, 0}),
-			script.NewEventProc(eventid.Heli2, fig.FloatPoint{180, 0}),
-			script.NewEventProc(eventid.Heli2, fig.FloatPoint{200, 0}),
-			script.NewEventProc(eventid.Heli2, fig.FloatPoint{220, 0}),
-			script.NewEventProc(eventid.Heli2, fig.FloatPoint{240, 0}),
-			script.NewEventProc(eventid.Heli2, fig.FloatPoint{260, 0}),
-			script.NewEventProc(eventid.Heli2, fig.FloatPoint{280, 0}),
-			script.NewEventProc(eventid.Heli2, fig.FloatPoint{300, 0}),
-			script.NewEventProc(eventid.Heli2, fig.FloatPoint{320, 0}),
-			script.NewEventProc(eventid.Heli2, fig.FloatPoint{340, 0}),
-			script.NewEventProc(eventid.Heli2, fig.FloatPoint{360, 0}),
-			script.NewEventProc(eventid.Heli2, fig.FloatPoint{380, 0}),
-			script.NewEventProc(eventid.Heli2, fig.FloatPoint{400, 0}),
-			script.NewEventProc(eventid.Heli2, fig.FloatPoint{420, 0}),
-			script.NewEventProc(eventid.Heli2, fig.FloatPoint{440, 0}),
-			script.NewEventProc(eventid.Heli2, fig.FloatPoint{460, 0}),
-			script.NewEventProc(eventid.Heli2, fig.FloatPoint{480, 0}),
-			script.NewEventProc(eventid.Heli2, fig.FloatPoint{500, 0}),
+			script.NewEventProc(eventid.Heli2, fig.Point{20, 0}),
+			script.NewEventProc(eventid.Heli2, fig.Point{40, 0}),
+			script.NewEventProc(eventid.Heli2, fig.Point{60, 0}),
+			script.NewEventProc(eventid.Heli2, fig.Point{80, 0}),
+			script.NewEventProc(eventid.Heli2, fig.Point{100, 0}),
+			script.NewEventProc(eventid.Heli2, fig.Point{120, 0}),
+			script.NewEventProc(eventid.Heli2, fig.Point{140, 0}),
+			script.NewEventProc(eventid.Heli2, fig.Point{160, 0}),
+			script.NewEventProc(eventid.Heli2, fig.Point{180, 0}),
+			script.NewEventProc(eventid.Heli2, fig.Point{200, 0}),
+			script.NewEventProc(eventid.Heli2, fig.Point{220, 0}),
+			script.NewEventProc(eventid.Heli2, fig.Point{240, 0}),
+			script.NewEventProc(eventid.Heli2, fig.Point{260, 0}),
+			script.NewEventProc(eventid.Heli2, fig.Point{280, 0}),
+			script.NewEventProc(eventid.Heli2, fig.Point{300, 0}),
+			script.NewEventProc(eventid.Heli2, fig.Point{320, 0}),
+			script.NewEventProc(eventid.Heli2, fig.Point{340, 0}),
+			script.NewEventProc(eventid.Heli2, fig.Point{360, 0}),
+			script.NewEventProc(eventid.Heli2, fig.Point{380, 0}),
+			script.NewEventProc(eventid.Heli2, fig.Point{400, 0}),
+			script.NewEventProc(eventid.Heli2, fig.Point{420, 0}),
+			script.NewEventProc(eventid.Heli2, fig.Point{440, 0}),
+			script.NewEventProc(eventid.Heli2, fig.Point{460, 0}),
+			script.NewEventProc(eventid.Heli2, fig.Point{480, 0}),
+			script.NewEventProc(eventid.Heli2, fig.Point{500, 0}),
 			script.NewJumpProc(7),
+
 		}),
 	}
 }

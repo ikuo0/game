@@ -36,8 +36,8 @@ func LoadImage(fileName string) *ebiten.Image {
 	}
 }
 
-func (me *Scene) Point() (fig.FloatPoint) {
-	return fig.FloatPoint{0, 0}
+func (me *Scene) GetPoint() (fig.Point) {
+	return fig.Point{0, 0}
 }
 
 func (me *Scene) Direction() (radian.Radian) {
@@ -61,7 +61,7 @@ func (me *Scene) Draw(screen *ebiten.Image) {
 
 func NewScene() *Scene {
 	x := player.NewPlayers()
-	x.Occure(player.NewPlayer(fig.FloatPoint{100, 100}))
+	x.Occure(player.NewPlayer(fig.Point{100, 100}))
 	return &Scene{
 		Player:          x,
 		PlayerImage:     LoadImage("./resource/image/Player0102.png"),

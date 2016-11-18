@@ -43,7 +43,7 @@ func New(ary []string) (*Result) {
 	res := &Result {
 		Src:        srcQ,
 		Dst:        dstQ,
-		Instrument: instrument.NewInstrument(fig.Rect {100, 100, 400, 500}, 24, color.RGBA{0xb2, 0xfa, 0x8e, 0xdd}),
+		Instrument: instrument.NewInstrument(fig.IntRect {100, 100, 400, 500}, 24, color.RGBA{0xb2, 0xfa, 0x8e, 0xdd}),
 	}
 	res.Next()
 	return res

@@ -6,12 +6,17 @@ import (
 	//"../mathlib"
 )
 
+type IntPoint struct {
+	X int
+	Y int
+}
+
 //########################################
 //# Point
 //########################################
 type Point struct {
-	X int
-	Y int
+	X float64
+	Y float64
 }
 
 func (me Point) Equal(pt Point) (bool) {
@@ -27,34 +32,13 @@ func (me Point) Diff(pt Point) (Point) {
 	}
 }
 
-func (me Point) ToFloat() (FloatPoint) {
-	return FloatPoint {
-		X: float64(me.X),
-		Y: float64(me.Y),
-	}
-}
-
-//########################################
-//# FloatPoint
-//########################################
-type FloatPoint struct {
-	X float64
-	Y float64
-}
-
-func (me FloatPoint) Diff(pt FloatPoint) (FloatPoint) {
-	return FloatPoint {
-		X: me.X - pt.X,
-		Y: me.Y - pt.Y,
-	}
-}
-
-func (me FloatPoint) ToInt() (Point) {
-	return Point {
+func (me Point) ToInt() (IntPoint) {
+	return IntPoint {
 		X: int(me.X),
 		Y: int(me.Y),
 	}
 }
+
 
 //########################################
 //# Line
@@ -73,24 +57,42 @@ func (me Line) Hit(l *Line) (bool) {
 }
 
 //########################################
+//# IntRect
+//########################################
+type IntRect struct {
+	Left   int
+	Top    int
+	Right  int
+	Bottom int
+}
+
+func (me IntRect) Width() (int) {
+	return me.Right - me.Left
+}
+
+func (me IntRect) Height() (int) {
+	return me.Bottom - me.Top
+}
+
+//########################################
 //# Rect
 //########################################
 type Rect struct {
-	Left   int
-	Top	int
-	Right  int
-	Bottom int
+	Left   float64
+	Top    float64
+	Right  float64
+	Bottom float64
 }
 
 func (me Rect) String() (string) {
 	return fmt.Sprintf("%d, %d, %d, %d", me.Left, me.Top, me.Right, me.Bottom)
 }
 
-func (me Rect) Width() (int) {
+func (me Rect) Width() (float64) {
 	return me.Right - me.Left
 }
 
-func (me Rect) Height() (int) {
+func (me Rect) Height() (float64) {
 	return me.Bottom - me.Top
 }
 
@@ -104,15 +106,15 @@ func (me Rect) Center() (Point) {
 func (me Rect) Relative(pt Point) (Rect) {
 	me.Left   += pt.X
 	me.Right  += pt.X
-	me.Top	+= pt.Y
+	me.Top    += pt.Y
 	me.Bottom += pt.Y
 	return me
 }
 
-func (me *Rect) Add(x, y int) {
+func (me *Rect) Add(x, y float64) {
 	me.Left   += x
 	me.Right  += x
-	me.Top	+= y
+	me.Top    += y
 	me.Bottom += y
 }
 
@@ -128,15 +130,6 @@ func (me Rect) In(pt Point) (bool) {
 		me.Right > pt.X &&
 		me.Top < pt.Y &&
 		me.Bottom > pt.Y
-}
-
-func (me Rect) InF(pt FloatPoint) (bool) {
-	x := int(pt.X)
-	y := int(pt.Y)
-	return x >= me.Left &&
-	x <= me.Right &&
-	y >= me.Top &&
-	y <= me.Bottom
 }
 
 func (me Rect) LeftLine() (Line) {

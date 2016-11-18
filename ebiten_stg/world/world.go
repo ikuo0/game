@@ -9,8 +9,8 @@ import (
 
 type DummyPlayer struct {
 }
-func (me *DummyPlayer) Point() (fig.FloatPoint) {
-	return fig.FloatPoint{0,0}
+func (me *DummyPlayer) GetPoint() (fig.Point) {
+	return fig.Point{0,0}
 }
 func (me *DummyPlayer) Direction() (radian.Radian) {
 	return 0
@@ -35,8 +35,8 @@ func SetPlayerCount(count int) {
 	PlayerCount = count
 }
 
-func StartPoint() (fig.FloatPoint) {
-	return fig.FloatPoint{250, 600}
+func StartGetPoint() (fig.Point) {
+	return fig.Point{250, 600}
 }
 
 func Init() {

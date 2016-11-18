@@ -15,7 +15,7 @@ import (
 //# Objects
 //########################################
 type Object interface {
-	Point() (fig.FloatPoint)
+	GetPoint() (fig.Point)
 	Direction() (radian.Radian)
 	Update(trigger event.Trigger)
 	Vanish()
@@ -156,25 +156,25 @@ func HitWall(subjective LawsOfPhisics, allWalls ...CanHit) {
 type InTheScreen interface {
 	Len() (int)
 	Origin(i int) (orig.Interface)
-	SetPoint(int, fig.FloatPoint)
+	SetPoint(int, fig.Point)
 }
 func InScreen(inner fig.Rect, who ...InTheScreen) {
 	for _, v := range who {
 		for i := 0; i < v.Len(); i++ {
-			pt := v.Origin(i).Point()
-			x := int(pt.X)
-			y := int(pt.Y)
+			pt := v.Origin(i).GetPoint()
+			x := pt.X
+			y := pt.Y
 			if x < inner.Left {
-				pt.X = float64(inner.Left)
+				pt.X = inner.Left
 			}
 			if x > inner.Right {
-				pt.X = float64(inner.Right)
+				pt.X = inner.Right
 			}
 			if y < inner.Top {
-				pt.Y = float64(inner.Top)
+				pt.Y = inner.Top
 			}
 			if y > inner.Bottom {
-				pt.Y = float64(inner.Bottom)
+				pt.Y = inner.Bottom
 			}
 			v.SetPoint(i, pt)
 		}
@@ -192,7 +192,7 @@ type InTheWorld interface {
 func GoOutside(outer fig.Rect, who ...InTheWorld) {
 	for _, x := range who {
 		for i := 0; i < x.Len(); i++ {
-			if !outer.InF(x.Origin(i).Point()) {
+			if !outer.In(x.Origin(i).GetPoint()) {
 				x.Vanish(i)
 			}
 		}

@@ -106,8 +106,8 @@ func LoadImage(fileName string) *ebiten.Image {
 	}
 }
 
-func (me *Stage1) Point() (fig.FloatPoint) {
-	return fig.FloatPoint{0, 0}
+func (me *Stage1) GetPoint() (fig.Point) {
+	return fig.Point{0, 0}
 }
 
 func (me *Stage1) Direction() (radian.Radian) {
@@ -180,7 +180,7 @@ func (me *Stage1) Draw(screen *ebiten.Image) {
 func (me *Stage1) EventTrigger(id event.Id, argument interface{}, origin orig.Interface) {
 	switch id {
 		case eventid.Player:
-			pt := argument.(fig.FloatPoint)
+			pt := argument.(fig.Point)
 			me.PlayerEntity = player.NewPlayer(pt)
 			me.Player.Occure(me.PlayerEntity)
 
@@ -195,8 +195,8 @@ func (me *Stage1) EventTrigger(id event.Id, argument interface{}, origin orig.In
 			me.Result = result.New(strings.Split(msg, "\n"))
 
 		case eventid.Wall:
-			//pt := argument.(fig.FloatPoint)
-			pt := argument.(fig.FloatPoint)
+			//pt := argument.(fig.Point)
+			pt := argument.(fig.Point)
 			me.Wall.Occure(wall.New(pt))
 	}
 }
@@ -280,13 +280,13 @@ func CreateScript(src CourseMap) ([]script.Proc) {
 	for y, xline := range src {
 		for x, val := range xline {
 			if val == 1 {
-				pt := fig.Point{x * wall.Width, y * wall.Height}.ToFloat()
+				pt := fig.Point{float64(x * wall.Width), float64(y * wall.Height)}
 				p := script.NewEventProc(eventid.Wall, pt)
 				res = append(res, p)
 			}
 		}
 	}
-	res = append(res, script.NewEventProc(eventid.Player, fig.FloatPoint{400, 300}))
+	res = append(res, script.NewEventProc(eventid.Player, fig.Point{400, 300}))
 	res = append(res, script.NewWaitProc(0))
 	pos := len(res) - 1
 	res = append(res, script.NewJumpProc(pos))
@@ -294,7 +294,7 @@ func CreateScript(src CourseMap) ([]script.Proc) {
 /*
 script.NewSource([]script.Proc {
 			script.NewWaitProc(0),
-			script.NewEventProc(eventid.Player, fig.FloatPoint{250, 400}),
+			script.NewEventProc(eventid.Player, fig.Point{250, 400}),
 			script.NewWaitProc(0),
 			script.NewJumpProc(2),
 		}),
@@ -308,7 +308,7 @@ func New(args scene.Parameter) (scene.Interface) {
 	hitImage, _ := ebiten.NewImage(1, 1, ebiten.FilterLinear)
 	hitImage.Fill(color.RGBA{0xff, 0x00, 0x00, 0x77})
 
-	panelRect := fig.Rect {0, 576, 800, 600}
+	panelRect := fig.IntRect {0, 576, 800, 600}
 
 	conf := global.KeyConfig()
 	if e1 := conf.Load(global.Path().KeyConfig()); e1 != nil {

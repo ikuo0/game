@@ -40,15 +40,15 @@ var bullet1Source = []fig.Rect {
 }
 
 type Bullet1 struct {
-	fig.FloatPoint
+	fig.Point
 	V *move.Accel
 	Anime *anime.Frames
 	Vanished bool
 	Endurance int
 }
 
-func (me *Bullet1) Point() (fig.FloatPoint) {
-	return me.FloatPoint
+func (me *Bullet1) GetPoint() (fig.Point) {
+	return me.Point
 }
 
 func (me *Bullet1) Direction() (radian.Radian) {
@@ -91,9 +91,9 @@ func (me *Bullet1) Hit() {
 	me.Endurance--
 }
 
-func NewBullet1(pt fig.FloatPoint, direction radian.Radian) (*Bullet1) {
+func NewBullet1(pt fig.Point, direction radian.Radian) (*Bullet1) {
 	return &Bullet1 {
-		FloatPoint: pt,
+		Point: pt,
 		V:          move.NewAccel(direction, 1, 0.5, 6),
 		Anime:      anime.NewFrames(15, 15, 15, 15),
 		Endurance:  1,

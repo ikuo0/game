@@ -14,14 +14,14 @@ import (
 //# ReamExplosion
 //########################################
 type ReamExplosion struct {
-	fig.FloatPoint
+	fig.Point
 	Width        int
 	ExplodeTimer timer.Frame
 	VanishTimer  timer.Frame
 }
 
-func (me *ReamExplosion) Point() (fig.FloatPoint) {
-	return me.FloatPoint
+func (me *ReamExplosion) GetPoint() (fig.Point) {
+	return me.Point
 }
 func (me *ReamExplosion) Direction() (radian.Radian) {
 	return 0
@@ -33,14 +33,14 @@ func (me *ReamExplosion) Update(trigger event.Trigger) (bool) {
 		me.ExplodeTimer.Start(8 + rand.Intn(10))
 		w := me.Width
 		wh := float64(w / 2)
-		trigger.EventTrigger(eventid.Explosion1, fig.FloatPoint{float64(rand.Intn(w)) - wh, float64(rand.Intn(w)) - wh}, me)
+		trigger.EventTrigger(eventid.Explosion1, fig.Point{float64(rand.Intn(w)) - wh, float64(rand.Intn(w)) - wh}, me)
 	}
 	return false
 }
 
-func NewReamExplosion(width, tup int, pt fig.FloatPoint) (*ReamExplosion) {
+func NewReamExplosion(width, tup int, pt fig.Point) (*ReamExplosion) {
 	res := ReamExplosion {
-		FloatPoint: pt,
+		Point: pt,
 		Width: width,
 	}
 	res.VanishTimer.Start(tup)

@@ -26,6 +26,10 @@ func DegreeToRadian(deg int) (radian.Radian) {
 	return radian.DegArray[ToIndex(deg)]
 }
 
+func RadianToDegree(rad radian.Radian) (int) {
+	return NormalizeDeg(int(radian.ToDeg(rad)))
+}
+
 func Up() (radian.Radian) {
 	return radian.DegArray[ToIndex(90)]
 }
@@ -58,9 +62,9 @@ func LeftUp() (radian.Radian) {
 	return radian.DegArray[ToIndex(225)]
 }
 
-func Aim(to, from fig.FloatPoint) (radian.Radian) {
+func Aim(to, from fig.Point) (radian.Radian) {
 	//return radian.Radian(math.Atan2(to.Y - from.Y, to.X - from.X))
-	return radian.Radian(math.Atan2(to.Y - from.Y, to.X - from.X))
+	return radian.Radian(math.Atan2(float64(to.Y - from.Y), float64(to.X - from.X)))
 }
 
 //########################################

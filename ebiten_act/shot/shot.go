@@ -17,17 +17,17 @@ const Width = 20
 const Height = 20
 const AdjustX = -10
 const AdjustY = -10
-var ImageSrc = fig.Rect {0, 0, Width, Height}
+var ImageSrc = fig.IntRect {0, 0, Width, Height}
 type Shot struct {
-	fig.FloatPoint
+	fig.Point
 	Vanished   bool
 	Radian     radian.Radian
 	V          *move.FixedVector
 	Endurance  int
 }
 
-func (me *Shot) Point() (fig.FloatPoint) {
-	return me.FloatPoint
+func (me *Shot) GetPoint() (fig.Point) {
+	return me.Point
 }
 
 func (me *Shot) Direction() (radian.Radian) {
@@ -53,14 +53,14 @@ func (me *Shot) Dst() (x0, y0, x1, y1 int) {
 	x, y := int(me.X) + AdjustX, int(me.Y) + AdjustY
 	return x, y, x + Width, y + Height
 }
-func (me *Shot) SetPoint(pt fig.FloatPoint) {
-	me.FloatPoint = pt
+func (me *Shot) SetPoint(pt fig.Point) {
+	me.Point = pt
 }
 func (me *Shot) HitRects() ([]fig.Rect) {
 	if me.Endurance <= 0 {
 		return nil
 	} else {
-		x, y := int(me.X) + AdjustX, int(me.Y) + AdjustY
+		x, y := me.X + AdjustX, me.Y + AdjustY
 		return []fig.Rect{{x, y, x + Width, y + Height}}
 	}
 }
@@ -74,9 +74,9 @@ func (me *Shot) Stack() (*script.Stack) {
 	return nil
 }
 
-func New(pt fig.FloatPoint, rad radian.Radian) (*Shot) {
+func New(pt fig.Point, rad radian.Radian) (*Shot) {
 	return &Shot{
-		FloatPoint: pt,
+		Point: pt,
 		Radian:     rad,
 		V:          move.NewFixedVector(rad, 16),
 		Endurance:  1,

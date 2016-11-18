@@ -17,7 +17,7 @@ import (
 //########################################
 //# Block
 //########################################
-var ImageSource = []fig.Rect {
+var ImageSource = []fig.IntRect {
 	{
 		0,
 		0,
@@ -27,11 +27,11 @@ var ImageSource = []fig.Rect {
 }
 
 type Block struct {
-	fig.FloatPoint
+	fig.Point
 }
 
-func (me *Block) Point() (fig.FloatPoint) {
-	return me.FloatPoint
+func (me *Block) GetPoint() (fig.Point) {
+	return me.Point
 }
 
 func (me *Block) Direction() (radian.Radian) {
@@ -55,7 +55,7 @@ func (me *Block) Dst() (x0, y0, x1, y1 int) {
 	return x, y, x + 32, y + 32
 }
 func (me *Block) HitRects() ([]fig.Rect) {
-	x, y := int(me.X) - 16, int(me.Y) - 16
+	x, y := me.X - 16, me.Y - 16
 	return []fig.Rect{{x, y, x + 32, y + 32}}
 }
 
@@ -66,9 +66,9 @@ func (me *Block) Stack() (*script.Stack) {
 	return nil
 }
 
-func NewBlock(pt fig.FloatPoint) (*Block) {
+func NewBlock(pt fig.Point) (*Block) {
 	return &Block {
-		FloatPoint: pt,
+		Point: pt,
 	}
 }
 
@@ -83,7 +83,7 @@ const (
 )
 
 type Config struct {
-	Point           fig.FloatPoint
+	Point           fig.Point
 	Span            int
 	OccureDirection OccureDirection
 }
@@ -113,7 +113,7 @@ func (me *OccureBlock) Update(trigger event.Trigger) {
 			}
 		}
 		setting := funcs.EnemyConfig {
-			Point:     me.FloatPoint,
+			Point:     me.Point,
 			Direction: d,
 		}
 		trigger.EventTrigger(eventid.Enemy, setting, me)

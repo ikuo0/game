@@ -21,18 +21,18 @@ import (
 	//"fmt"
 )
 
-var SrcSlopeLeft2  = fig.Rect {218, 0, 218 + 32, 36}
-var SrcSlopeLeft1  = fig.Rect {250, 0, 250 + 32, 36}
-var SrcCenter      = fig.Rect {378, 0, 378 + 32, 36}
-var SrcSlopeRight1 = fig.Rect {314, 0, 314 + 32, 36}
-var SrcSlopeRight2 = fig.Rect {282, 0, 282 + 32, 36}
+var SrcSlopeLeft2  = fig.IntRect {218, 0, 218 + 32, 36}
+var SrcSlopeLeft1  = fig.IntRect {250, 0, 250 + 32, 36}
+var SrcCenter      = fig.IntRect {378, 0, 378 + 32, 36}
+var SrcSlopeRight1 = fig.IntRect {314, 0, 314 + 32, 36}
+var SrcSlopeRight2 = fig.IntRect {282, 0, 282 + 32, 36}
 var ShotCommand    = []ginput.InputBits {ginput.Nkey1, ginput.Key1}
 var SheldCommand   = []ginput.InputBits {ginput.Nkey2, ginput.Key2}
 
 type Player struct {
-	fig.FloatPoint
+	fig.Point
 	Vanished    bool
-	CurrentSrc  fig.Rect
+	CurrentSrc  fig.IntRect
 	V           *move.Vector
 	XYcomponent *move.XYcomponent
 	InputBits   ginput.InputBits
@@ -45,8 +45,8 @@ type Player struct {
 	NowEntry    *timer.Frame
 }
 
-func (me *Player) Point() (fig.FloatPoint) {
-	return me.FloatPoint
+func (me *Player) GetPoint() (fig.Point) {
+	return me.Point
 }
 
 func (me *Player) Direction() (radian.Radian) {
@@ -87,7 +87,7 @@ func (me *Player) Update(trigger event.Trigger) {
 
 		if bits.Or(ginput.AxisMask) {
 			me.V.Accel(7)
-			me.XYcomponent.Set(me.V.X(), me.V.Y())
+			me.XYcomponent.Accel(me.V.X(), me.V.Y())
 		} else {
 			//me.V.Frictional(0.2)
 		}
@@ -132,15 +132,15 @@ func (me *Player) Dst() (x0, y0, x1, y1 int) {
 func (me *Player) SetInput(bits ginput.InputBits) {
 	me.InputBits = bits
 }
-func (me *Player) SetPoint(pt fig.FloatPoint) {
-	me.FloatPoint = pt
+func (me *Player) SetPoint(pt fig.Point) {
+	me.Point = pt
 }
 
 func (me *Player) HitRects() ([]fig.Rect) {
 	if me.Dead || !me.Invisible.Up() {
 		return nil
 	} else {
-		x, y := int(me.X), int(me.Y)
+		x, y := me.X, me.Y
 		return []fig.Rect{{x, y, x, y}}
 	}
 }
@@ -149,7 +149,7 @@ func (me *Player) Hit(obj action.Object) {
 	me.Endurance--
 	if me.Endurance <= 0 {
 		me.Dead = true
-		me.ReamExplosion = effect.NewReamExplosion(64, 180, me.FloatPoint)
+		me.ReamExplosion = effect.NewReamExplosion(64, 180, me.Point)
 	}
 }
 func (me *Player) Stack() (*script.Stack) {
@@ -170,11 +170,11 @@ func (me *Player) SetCurrentSrc(p float64) {
 	}
 }
 
-func NewPlayer(pt fig.FloatPoint) (*Player) {
+func NewPlayer(pt fig.Point) (*Player) {
 	return &Player{
-		FloatPoint: pt,
+		Point: pt,
 		V:           move.NewVector(90, 7),
-		XYcomponent: move.NewXYcomponent(0.2),
+		XYcomponent: move.NewXYcomponent(0.4),
 		Kbuffer:    &kcmd.Buffer{},
 		Endurance:  100,
 		Invisible:  timer.NewFrame(180),
@@ -187,14 +187,14 @@ func NewPlayer(pt fig.FloatPoint) (*Player) {
 //# Objects
 //########################################
 type Interface interface {
-	Point() (fig.FloatPoint)
+	GetPoint() (fig.Point)
 	Direction() (radian.Radian)
 	Update(trigger event.Trigger)
 	Vanish()
 	IsVanish() (bool)
 	Src() (x0, y0, x1, y1 int)
 	Dst() (x0, y0, x1, y1 int)
-	SetPoint(fig.FloatPoint)
+	SetPoint(fig.Point)
 	HitRects() ([]fig.Rect)
 	Hit(action.Object)
 	SetInput(ginput.InputBits)
@@ -209,7 +209,7 @@ func (me *Objects) Get(i int) (Interface) {
 func (me *Objects) SetInput(i int, bits ginput.InputBits) {
 	me.Get(i).SetInput(bits)
 }
-func (me *Objects) SetPoint(i int, pt fig.FloatPoint) {
+func (me *Objects) SetPoint(i int, pt fig.Point) {
 	me.Get(i).SetPoint(pt)
 }
 func (me *Objects) DrawOption(i int) (*ebiten.DrawImageOptions) {
@@ -220,7 +220,7 @@ func (me *Objects) DrawOption(i int) (*ebiten.DrawImageOptions) {
 	}
 
 	o := me.Objs[i]
-	pt := o.Point()
+	pt := o.GetPoint()
 	opt.GeoM.Translate(-pt.X, -pt.Y)
 	opt.GeoM.Rotate(float64(o.Direction()))
 	opt.GeoM.Translate(pt.X, pt.Y)

@@ -180,7 +180,7 @@ func (me *FontMap) Search(x []byte) (*Info) {
 }
 
 type FontSprite struct {
-	fig.Point
+	fig.IntPoint
 	*Info
 }
 
@@ -199,7 +199,7 @@ func (me *FontSprites) SetSub(s string, yIndex int) {
 	for _, v := range s {
 		if info := me.FontMap.Search([]byte(string(v))); info != nil {
 			me.FontArray = append(me.FontArray, FontSprite {
-				Point: fig.Point {
+				IntPoint: fig.IntPoint {
 					X: xPos,
 					Y: yIndex * me.SrcHeight,
 				},
@@ -212,7 +212,7 @@ func (me *FontSprites) SetSub(s string, yIndex int) {
 			}
 		} else {
 			me.FontArray = append(me.FontArray, FontSprite {
-				Point: fig.Point {
+				IntPoint: fig.IntPoint {
 					X: xPos,
 					Y: yIndex * me.SrcHeight,
 				},
@@ -249,8 +249,8 @@ func (me *FontSprites) Dst(i int) (x0, y0, x1, y1 int) {
 	if fsp.Info == nil {
 		return
 	} else {
-		x := me.X + fsp.Point.X
-		y := me.Y + fsp.Point.Y
+		x := me.X + fsp.IntPoint.X
+		y := me.Y + fsp.IntPoint.Y
 		return x, y, x + me.SrcWidth, y + me.SrcHeight
 	}
 }

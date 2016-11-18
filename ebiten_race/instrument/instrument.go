@@ -14,7 +14,7 @@ import (
 //# Instrument
 //########################################
 type Instrument struct {
-	Rect    fig.Rect
+	Rect    fig.IntRect
 	BgColor color.RGBA
 	Font    *fontmap.FontMap
 	Canvas  *ebiten.Image
@@ -49,7 +49,7 @@ func (me *Instrument) Options() (*ebiten.DrawImageOptions) {
 	}
 }
 
-func NewInstrument(rect fig.Rect, bgColor color.RGBA) (*Instrument) {
+func NewInstrument(rect fig.IntRect, bgColor color.RGBA) (*Instrument) {
 	if font, e1 := fontmap.New(`./resource/font/ipa/ipag.ttf`, 24); e1 != nil {
 		log.Log("フォント読み込みエラー: %s", e1.Error())
 		os.Exit(1)

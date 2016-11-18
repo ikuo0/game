@@ -16,15 +16,15 @@ const Width = 24
 const Height = 24
 const AdjustX = -12
 const AdjustY = -12
-var ImageSrc = fig.Rect {0, 0, Width, Height}
+var ImageSrc = fig.IntRect {0, 0, Width, Height}
 
 type Wall struct {
-	fig.FloatPoint
+	fig.Point
 	Hitme bool
 }
 
-func (me *Wall) Point() (fig.FloatPoint) {
-	return me.FloatPoint
+func (me *Wall) GetPoint() (fig.Point) {
+	return me.Point
 }
 
 func (me *Wall) Direction() (radian.Radian) {
@@ -33,7 +33,7 @@ func (me *Wall) Direction() (radian.Radian) {
 
 func (me *Wall) Update(trigger event.Trigger) {
 	if me.Hitme {
-		trigger.EventTrigger(eventid.CollisionWall, me.FloatPoint, me)
+		trigger.EventTrigger(eventid.CollisionWall, me.Point, me)
 		me.Hitme = false
 	}
 }
@@ -51,7 +51,7 @@ func (me *Wall) Dst() (x0, y0, x1, y1 int) {
 	return x, y, x + Width, y + Height
 }
 func (me *Wall) HitRects() ([]fig.Rect) {
-	x, y := int(me.X) + AdjustX, int(me.Y) + AdjustY
+	x, y := me.X + AdjustX, me.Y + AdjustY
 	return []fig.Rect{{x, y, x + Width, y + Height}}
 }
 
@@ -59,9 +59,9 @@ func (me *Wall) Hit(obj action.Object) {
 	me.Hitme = true
 }
 
-func New(pt fig.FloatPoint) (*Wall) {
+func New(pt fig.Point) (*Wall) {
 	return &Wall {
-		FloatPoint: pt,
+		Point: pt,
 	}
 }
 

@@ -14,13 +14,13 @@ const Height = 128
 const AdjustX = -64
 const AdjustY = -64
 
-func SrcCalc() ([]fig.Rect) {
-	res := []fig.Rect{}
+func SrcCalc() ([]fig.IntRect) {
+	res := []fig.IntRect{}
 	for y := 0; y < 5; y++ {
 		for x := 0; x < 5; x++ {
 			left, top := x * Width, y * Height
 			right, bottom := left + Width, top + Height
-			res = append(res, fig.Rect{left, top, right, bottom})
+			res = append(res, fig.IntRect{left, top, right, bottom})
 		}
 	}
 	return res
@@ -32,13 +32,13 @@ func SrcCalc() ([]fig.Rect) {
 var ImageSrc = SrcCalc()
 
 type Explosion struct {
-	fig.FloatPoint
+	fig.Point
 	Anime *anime.Frames
 	Vanished bool
 }
 
-func (me *Explosion) Point() (fig.FloatPoint) {
-	return me.FloatPoint
+func (me *Explosion) GetPoint() (fig.Point) {
+	return me.Point
 }
 
 func (me *Explosion) Direction() (radian.Radian) {
@@ -73,9 +73,9 @@ func (me *Explosion) Dst() (x0, y0, x1, y1 int) {
 	x, y := int(me.X) + AdjustX, int(me.Y) + AdjustY
 	return x, y, x + Width, y + Height
 }
-func New(pt fig.FloatPoint, frames *anime.Frames) (*Explosion) {
+func New(pt fig.Point, frames *anime.Frames) (*Explosion) {
 	return &Explosion {
-		FloatPoint: pt,
+		Point: pt,
 		Anime:      frames,
 	}
 }
@@ -86,7 +86,7 @@ func New(pt fig.FloatPoint, frames *anime.Frames) (*Explosion) {
 type Explosion1 struct {
 	*Explosion
 }
-func NewExplosion1(pt fig.FloatPoint) (*Explosion1) {
+func NewExplosion1(pt fig.Point) (*Explosion1) {
 	return &Explosion1 {
 		Explosion: New(pt, anime.NewFrames(
 			2, 2, 2, 2, 2, 
@@ -104,7 +104,7 @@ func NewExplosion1(pt fig.FloatPoint) (*Explosion1) {
 type Explosion2 struct {
 	*Explosion
 }
-func NewExplosion2(pt fig.FloatPoint) (*Explosion2) {
+func NewExplosion2(pt fig.Point) (*Explosion2) {
 	return &Explosion2 {
 		Explosion: New(pt, anime.NewFrames(
 			4, 4, 4, 4, 4, 

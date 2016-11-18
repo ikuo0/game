@@ -18,7 +18,7 @@ const Height = 32
 const AdjustX = -16
 const AdjustY = -16
 
-var ImageSource = []fig.Rect {
+var ImageSource = []fig.IntRect {
 	{
 		0,
 		0,
@@ -28,13 +28,13 @@ var ImageSource = []fig.Rect {
 }
 
 type Vortex struct {
-	fig.FloatPoint
+	fig.Point
 	Taken    bool
 	Vanished bool
 }
 
-func (me *Vortex) Point() (fig.FloatPoint) {
-	return me.FloatPoint
+func (me *Vortex) GetPoint() (fig.Point) {
+	return me.Point
 }
 
 func (me *Vortex) Direction() (radian.Radian) {
@@ -64,7 +64,7 @@ func (me *Vortex) Dst() (x0, y0, x1, y1 int) {
 	return x, y, x + Width, y + Height
 }
 func (me *Vortex) HitRects() ([]fig.Rect) {
-	x, y := int(me.X) + AdjustX, int(me.Y) + AdjustY
+	x, y := me.X + AdjustX, me.Y + AdjustY
 	return []fig.Rect{{x, y, x + Width, y + Height}}
 }
 
@@ -76,8 +76,8 @@ func (me *Vortex) Stack() (*script.Stack) {
 	return nil
 }
 
-func New(pt fig.FloatPoint) (*Vortex) {
+func New(pt fig.Point) (*Vortex) {
 	return &Vortex {
-		FloatPoint: pt,
+		Point: pt,
 	}
 }

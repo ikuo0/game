@@ -42,7 +42,7 @@ var bullet1Source = []fig.Rect {
 }
 
 type Bullet1 struct {
-	fig.FloatPoint
+	fig.Point
 	Radian    radian.Radian
 	V         *move.FixedVector
 	Anime     *anime.Frames
@@ -50,8 +50,8 @@ type Bullet1 struct {
 	Endurance int
 }
 
-func (me *Bullet1) Point() (fig.FloatPoint) {
-	return me.FloatPoint
+func (me *Bullet1) GetPoint() (fig.Point) {
+	return me.Point
 }
 
 func (me *Bullet1) Direction() (radian.Radian) {
@@ -78,14 +78,14 @@ func (me *Bullet1) IsVanish() (bool) {
 }
 func (me *Bullet1) Src() (x0, y0, x1, y1 int) {
 	x := bullet1Source[me.Anime.Index()]
-	return x.Left, x.Top, x.Right, x.Bottom
+	return int(x.Left), int(x.Top), int(x.Right), int(x.Bottom)
 }
 func (me *Bullet1) Dst() (x0, y0, x1, y1 int) {
 	x, y := int(me.X) - 13, int(me.Y) - 13
 	return x, y, x + 26, y + 26
 }
 func (me *Bullet1) HitRects() ([]fig.Rect) {
-	x, y := int(me.X) - 13, int(me.Y) - 13
+	x, y := me.X - 13, me.Y - 13
 	return []fig.Rect{{x, y, x + 26, y + 26}}
 }
 
@@ -93,9 +93,9 @@ func (me *Bullet1) Hit(obj action.Object) {
 	me.Endurance--
 }
 
-func NewBullet1(pt fig.FloatPoint, direction radian.Radian) (*Bullet1) {
+func NewBullet1(pt fig.Point, direction radian.Radian) (*Bullet1) {
 	return &Bullet1 {
-		FloatPoint: pt,
+		Point: pt,
 		Radian:     direction,
 		V:          move.NewFixedVector(direction, 6),
 		Anime:      anime.NewFrames(15, 15, 15, 15),
