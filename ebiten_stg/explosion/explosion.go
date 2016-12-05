@@ -2,7 +2,7 @@
 package explosion
 
 import (
-	"github.com/ikuo0/game/lib/action"
+	"github.com/ikuo0/game/ebiten_stg/action"
 	"github.com/ikuo0/game/lib/event"
 	"github.com/ikuo0/game/lib/anime"
 	"github.com/ikuo0/game/lib/fig"
@@ -90,6 +90,7 @@ var SrcExplosion1 = []fig.Rect {
 }
 
 type Explosion1 struct {
+	action.Object
 	fig.Point
 	Anime *anime.Frames
 	Vanished bool
@@ -129,7 +130,7 @@ func (me *Explosion1) HitRects() ([]fig.Rect) {
 	return nil
 }
 
-func (me *Explosion1) Hit(obj action.Object) {
+func (me *Explosion1) Hit(obj action.Interface) {
 }
 
 func NewExplosion1(pt fig.Point) (*Explosion1) {

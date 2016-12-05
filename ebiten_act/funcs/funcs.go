@@ -54,17 +54,17 @@ func NewGravity() (*Gravity) {
 //########################################
 //# Hit Check
 //########################################
-type WallStatus int
+type FloorStatus int
 
 const (
-	WallNone WallStatus = 0x00
-	WallLeft            = 0x01
-	WallRight           = 0x02
-	WallTop             = 0x04
-	WallBottom          = 0x08
+	FloorNone FloorStatus = 0x00
+	FloorLeft            = 0x01
+	FloorRight           = 0x02
+	FloorTop             = 0x04
+	FloorBottom          = 0x08
 )
 
-func (me WallStatus) IsHit() (bool) {
+func (me FloorStatus) IsHit() (bool) {
 	return (me != 0)
 }
 
@@ -74,9 +74,9 @@ type FallingRects struct {
 	Foot fig.Rect
 }
 
-func (me *FallingRects) HitWall(pt fig.Point, descend bool, walls []fig.Rect) (fig.Point, WallStatus) {
+func (me *FallingRects) HitFloor(pt fig.Point, descend bool, walls []fig.Rect) (fig.Point, FloorStatus) {
 	//pt := fpt.ToInt()
-	status := WallNone
+	status := FloorNone
 
 	global.RectDebug.Clear()
 
@@ -85,7 +85,7 @@ func (me *FallingRects) HitWall(pt fig.Point, descend bool, walls []fig.Rect) (f
 			head := me.Head.Relative(pt)
 			//global.RectDebug.Append(head)
 			if head.Hit(&w) {
-				status |= WallTop
+				status |= FloorTop
 				pt.Y += w.Bottom - head.Top
 			}
 		}
@@ -96,10 +96,10 @@ func (me *FallingRects) HitWall(pt fig.Point, descend bool, walls []fig.Rect) (f
 		global.RectDebug.Append(body)
 		if body.Hit(&w) {
 			if body.Center().X > w.Center().X {
-				status |= WallLeft
+				status |= FloorLeft
 				pt.X += w.Right - body.Left
 			} else {
-				status |= WallRight
+				status |= FloorRight
 				pt.X -= body.Right - w.Left
 			}
 		}
@@ -111,7 +111,7 @@ func (me *FallingRects) HitWall(pt fig.Point, descend bool, walls []fig.Rect) (f
 			global.RectDebug.Append(foot)
 			//global.RectDebug.Append(foot)
 			if foot.Hit(&w) {
-				status |= WallBottom
+				status |= FloorBottom
 				pt.Y -= (foot.Bottom - w.Top)
 			}
 		}

@@ -2,10 +2,10 @@
 package player
 
 import (
+	"github.com/ikuo0/game/ebiten_stg/action"
 	"github.com/ikuo0/game/ebiten_stg/effect"
 	"github.com/ikuo0/game/ebiten_stg/eventid"
 	"github.com/ikuo0/game/ebiten_stg/world"
-	"github.com/ikuo0/game/lib/action"
 	"github.com/ikuo0/game/lib/event"
 	"github.com/ikuo0/game/lib/fig"
 	"github.com/ikuo0/game/lib/ginput"
@@ -14,9 +14,8 @@ import (
 	"github.com/ikuo0/game/lib/move"
 	"github.com/ikuo0/game/lib/radian"
 	"github.com/ikuo0/game/lib/script"
-	"github.com/ikuo0/game/lib/sprites"
 	"github.com/ikuo0/game/lib/timer"
-	"github.com/hajimehoshi/ebiten"
+	//"github.com/hajimehoshi/ebiten"
 	//"math"
 	//"fmt"
 )
@@ -30,8 +29,7 @@ var ShotCommand    = []ginput.InputBits {ginput.Nkey1, ginput.Key1}
 var SheldCommand   = []ginput.InputBits {ginput.Nkey2, ginput.Key2}
 
 type Player struct {
-	fig.Point
-	Vanished    bool
+	action.Object
 	CurrentSrc  fig.IntRect
 	V           *move.Vector
 	XYcomponent *move.XYcomponent
@@ -43,10 +41,6 @@ type Player struct {
 	ReamExplosion *effect.ReamExplosion
 	Invisible   *timer.Frame
 	NowEntry    *timer.Frame
-}
-
-func (me *Player) GetPoint() (fig.Point) {
-	return me.Point
 }
 
 func (me *Player) Direction() (radian.Radian) {
@@ -115,12 +109,6 @@ func (me *Player) Update(trigger event.Trigger) {
 	}
 }
 
-func (me *Player) Vanish() {
-	me.Vanished = true
-}
-func (me *Player) IsVanish() (bool) {
-	return me.Vanished
-}
 func (me *Player) Src() (x0, y0, x1, y1 int) {
 	r := me.CurrentSrc
 	return r.Left, r.Top, r.Right, r.Bottom
@@ -132,9 +120,6 @@ func (me *Player) Dst() (x0, y0, x1, y1 int) {
 func (me *Player) SetInput(bits ginput.InputBits) {
 	me.InputBits = bits
 }
-func (me *Player) SetPoint(pt fig.Point) {
-	me.Point = pt
-}
 
 func (me *Player) HitRects() ([]fig.Rect) {
 	if me.Dead || !me.Invisible.Up() {
@@ -145,7 +130,7 @@ func (me *Player) HitRects() ([]fig.Rect) {
 	}
 }
 
-func (me *Player) Hit(obj action.Object) {
+func (me *Player) Hit(obj action.Interface) {
 	me.Endurance--
 	if me.Endurance <= 0 {
 		me.Dead = true
@@ -172,63 +157,15 @@ func (me *Player) SetCurrentSrc(p float64) {
 
 func NewPlayer(pt fig.Point) (*Player) {
 	return &Player{
-		Point: pt,
+		Object: action.Object {
+			Point: pt,
+		},
 		V:           move.NewVector(90, 7),
 		XYcomponent: move.NewXYcomponent(0.4),
 		Kbuffer:    &kcmd.Buffer{},
 		Endurance:  100,
 		Invisible:  timer.NewFrame(180),
 		NowEntry:   timer.NewFrame(30),
-	}
-}
-
-
-//########################################
-//# Objects
-//########################################
-type Interface interface {
-	GetPoint() (fig.Point)
-	Direction() (radian.Radian)
-	Update(trigger event.Trigger)
-	Vanish()
-	IsVanish() (bool)
-	Src() (x0, y0, x1, y1 int)
-	Dst() (x0, y0, x1, y1 int)
-	SetPoint(fig.Point)
-	HitRects() ([]fig.Rect)
-	Hit(action.Object)
-	SetInput(ginput.InputBits)
-}
-
-type Objects struct {
-	*sprites.Objects
-}
-func (me *Objects) Get(i int) (Interface) {
-	return me.Objs[i].(Interface)
-}
-func (me *Objects) SetInput(i int, bits ginput.InputBits) {
-	me.Get(i).SetInput(bits)
-}
-func (me *Objects) SetPoint(i int, pt fig.Point) {
-	me.Get(i).SetPoint(pt)
-}
-func (me *Objects) DrawOption(i int) (*ebiten.DrawImageOptions) {
-	sx0, sy0, sx1, sy1 := me.Src(i)
-	dx0, dy0, dx1, dy1 := me.Dst(i)
-	opt := ebiten.DrawImageOptions {
-		ImageParts: sprites.NewOneSprites(sx0, sy0, sx1, sy1, dx0, dy0, dx1, dy1),
-	}
-
-	o := me.Objs[i]
-	pt := o.GetPoint()
-	opt.GeoM.Translate(-pt.X, -pt.Y)
-	opt.GeoM.Rotate(float64(o.Direction()))
-	opt.GeoM.Translate(pt.X, pt.Y)
-	return &opt
-}
-func NewObjects() (*Objects) {
-	return &Objects {
-		Objects: sprites.NewObjects(),
 	}
 }
 

@@ -56,6 +56,13 @@ func (me Line) Hit(l *Line) (bool) {
 	return tc * td < 0 && ta * tb < 0;
 }
 
+func (me Line) Relative(pt Point) (Line) {
+	return Line {
+		Point{me.Start.X + pt.X, me.Start.Y + pt.Y},
+		Point{me.End.X + pt.X, me.End.Y + pt.Y},
+	}
+}
+
 //########################################
 //# IntRect
 //########################################

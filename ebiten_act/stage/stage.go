@@ -2,6 +2,7 @@
 package stage
 
 import (
+	"github.com/ikuo0/game/ebiten_act/action"
 	"github.com/ikuo0/game/ebiten_act/block"
 	"github.com/ikuo0/game/ebiten_act/enemy"
 	"github.com/ikuo0/game/ebiten_act/eventid"
@@ -13,7 +14,6 @@ import (
 	"github.com/ikuo0/game/ebiten_act/result"
 	"github.com/ikuo0/game/ebiten_act/shot"
 	"github.com/ikuo0/game/ebiten_act/vortex"
-	"github.com/ikuo0/game/lib/action"
 	"github.com/ikuo0/game/lib/event"
 	"github.com/ikuo0/game/lib/fig"
 	"github.com/ikuo0/game/lib/ginput"
@@ -23,7 +23,6 @@ import (
 	"github.com/ikuo0/game/lib/scene"
 	"github.com/ikuo0/game/lib/script"
 	"github.com/ikuo0/game/lib/sound"
-	"github.com/ikuo0/game/lib/sprites"
 	"github.com/ikuo0/game/lib/ttpl"
 	"github.com/hajimehoshi/ebiten"
 	"github.com/hajimehoshi/ebiten/ebitenutil"
@@ -94,26 +93,26 @@ type Stage1 struct {
 	GameStatus       global.GameStatus
 	Frame            int
 
-	Player           *player.Objects
+	Player           *action.Objects
 	PlayerImage      *ebiten.Image
 	PlayerEntity     *player.Player
 
-	Shot             *sprites.Objects
+	Shot             *action.Objects
 	ShotImage        *ebiten.Image
 
-	Block            *sprites.Objects
+	Block            *action.Objects
 	BlockImage       *ebiten.Image
 
-	OccureBlock      *sprites.Objects
+	OccureBlock      *action.Objects
 	OccureBlockImage *ebiten.Image
 
-	Enemy            *enemy.Objects
+	Enemy            *action.Objects
 	EnemyImage       *ebiten.Image
 
-	Explosion1        *sprites.Objects
+	Explosion1        *action.Objects
 	Explosion1Image   *ebiten.Image
 
-	Vortex           *sprites.Objects
+	Vortex           *action.Objects
 	VortexImage      *ebiten.Image
 
 	HitImage         *ebiten.Image
@@ -247,7 +246,7 @@ func (me *Stage1) Draw(screen *ebiten.Image) {
 	}
 
 	if me.Debug {
-		hitObjs := sprites.NewHitObjects(me.Block, me.OccureBlock, me.Shot, me.Enemy, global.RectDebug)
+		hitObjs := action.NewHitObjects(me.Block, me.OccureBlock, me.Shot, me.Enemy, global.RectDebug)
 		screen.DrawImage(me.HitImage, hitObjs.Options())
 	}
 }
@@ -451,25 +450,25 @@ func New(args scene.Parameter) (scene.Interface) {
 		GameStatus:       gameStatus,
 		KeyConfig:        conf,
 
-		Player:           player.NewObjects(),
+		Player:           action.NewObjects(),
 		PlayerImage:      LoadImage("./resource/image/player.png"),
 
-		Shot:             sprites.NewObjects(),
+		Shot:             action.NewObjects(),
 		ShotImage:        LoadImage("./resource/image/shot.png"),
 
-		Enemy:            enemy.NewObjects(),
+		Enemy:            action.NewObjects(),
 		EnemyImage:       LoadImage("./resource/image/enemy.png"),
 
-		Explosion1:        sprites.NewObjects(),
+		Explosion1:        action.NewObjects(),
 		Explosion1Image:   LoadImage("./resource/image/explosion.png"),
 
-		Vortex:           sprites.NewObjects(),
+		Vortex:           action.NewObjects(),
 		VortexImage:      LoadImage("./resource/image/vortex.png"),
 
-		Block:            sprites.NewObjects(),
+		Block:            action.NewObjects(),
 		BlockImage:       LoadImage("./resource/image/wall.png"),
 
-		OccureBlock:      sprites.NewObjects(),
+		OccureBlock:      action.NewObjects(),
 		OccureBlockImage: LoadImage("./resource/image/enemy_occure.png"),
 
 		HitImage:         hitImage,

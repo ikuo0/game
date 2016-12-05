@@ -3,16 +3,14 @@
 // 漢字
 
 import (
+	"github.com/ikuo0/game/ebiten_act/action"
 	"github.com/ikuo0/game/ebiten_act/eventid"
 	"github.com/ikuo0/game/ebiten_act/funcs"
-	"github.com/ikuo0/game/lib/action"
 	"github.com/ikuo0/game/lib/anime"
 	"github.com/ikuo0/game/lib/event"
 	"github.com/ikuo0/game/lib/fig"
 	"github.com/ikuo0/game/lib/move"
-	"github.com/ikuo0/game/lib/radian"
 	"github.com/ikuo0/game/lib/script"
-	"github.com/ikuo0/game/lib/sprites"
 	"github.com/ikuo0/game/lib/timer"
 	//"fmt"
 )
@@ -31,12 +29,11 @@ var ImageSources []fig.IntRect = []fig.IntRect {
 }
 
 type Enemy struct {
-	fig.Point
+	action.Object
 	Config        funcs.EnemyConfig
 	Ready         bool
 	ReadyTimer    *timer.Frame
 	FaceDirection funcs.FaceDirection
-	Vanished      bool
 	Gravity       *funcs.Gravity
 	V             *move.Vector
 	Xinertia      *move.Inertia
@@ -46,14 +43,6 @@ type Enemy struct {
 	FallingRects  *funcs.FallingRects
 	CanJump       bool
 	DeadTimer     *timer.Frame
-}
-
-func (me *Enemy) GetPoint() (fig.Point) {
-	return me.Point
-}
-
-func (me *Enemy) Direction() (radian.Radian) {
-	return 0
 }
 
 func (me *Enemy) FacingLeft() {
@@ -93,12 +82,6 @@ func (me *Enemy) Update(trigger event.Trigger) {
 	}
 }
 
-func (me *Enemy) Vanish() {
-	me.Vanished = true
-}
-func (me *Enemy) IsVanish() (bool) {
-	return me.Vanished
-}
 func (me *Enemy) Src() (x0, y0, x1, y1 int) {
 	idx := me.Anime.Index()
 	if me.FaceDirection == funcs.FaceLeft {
@@ -116,36 +99,36 @@ func (me *Enemy) HitRects() ([]fig.Rect) {
 	return []fig.Rect{{x, y, x + Width, y + Height}}
 }
 
-func (me *Enemy) Hit(origin action.Object) {
+func (me *Enemy) Hit(obj action.Interface) {
 	me.Endurance--
 	if me.Endurance <= 0 {
 		me.Dead = true
 	}
 }
 
-func (me *Enemy) HitWall(origin action.Object) {
+func (me *Enemy) HitWall(origin action.Interface) {
 }
 
 func (me *Enemy) Expel(hitWalls []fig.Rect) {
-	pt, status := me.FallingRects.HitWall(me.Point, true, hitWalls)
+	pt, status := me.FallingRects.HitFloor(me.Point, true, hitWalls)
 
-	if (status & funcs.WallTop) != 0 {
+	if (status & funcs.FloorTop) != 0 {
 		me.Gravity.JumpCancel()
 	}
 
-	if (status & funcs.WallBottom) != 0 {
+	if (status & funcs.FloorBottom) != 0 {
 		me.CanJump = true
 		me.Gravity.Landing()
 	} else {
 		me.CanJump = false
 	}
 
-	if (status & funcs.WallLeft) != 0 {
+	if (status & funcs.FloorLeft) != 0 {
 		//me.Xinertia.Backward.Reset()
 		me.FacingRight()
 	}
 
-	if (status & funcs.WallRight) != 0 {
+	if (status & funcs.FloorRight) != 0 {
 		//me.Xinertia.Advance.Reset()
 		me.FacingLeft()
 	}
@@ -173,8 +156,10 @@ func New(config funcs.EnemyConfig) (*Enemy) {
 	}
 
 	return &Enemy{
+		Object: action.Object {
+			Point: config.Point,
+		},
 		Config:        config,
-		Point:    config.Point,
 		Gravity:       funcs.NewGravity(),
 		V:             move.NewVector(deg, 5),
 		Xinertia:      move.NewInertia(0.4),
@@ -184,37 +169,6 @@ func New(config funcs.EnemyConfig) (*Enemy) {
 		FallingRects:  funcs.NewFallingRects(Width, Height, AdjustX, AdjustY),
 		DeadTimer:     timer.NewFrame(1200),
 		ReadyTimer:    timer.NewFrame(32),
-	}
-}
-
-//########################################
-//# Objects
-//########################################
-type Interface interface {
-	action.Object
-	HitWall(action.Object)
-	Expel([]fig.Rect)
-}
-
-type Objects struct {
-	*sprites.Objects
-}
-
-func (me *Objects) Get(i int) (Interface) {
-	return me.Objs[i].(Interface)
-}
-
-func (me *Objects) HitWall(i int, obj action.Object) {
-	me.Get(i).HitWall(obj)
-}
-
-func (me *Objects) Expel(i int, hitWalls []fig.Rect) {
-	me.Get(i).Expel(hitWalls)
-}
-
-func NewObjects() (*Objects) {
-	return &Objects {
-		Objects: sprites.NewObjects(),
 	}
 }
 

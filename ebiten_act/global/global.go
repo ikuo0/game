@@ -2,7 +2,7 @@
 package global
 
 import (
-	"github.com/ikuo0/game/lib/action"
+	"github.com/ikuo0/game/ebiten_act/action"
 	"github.com/ikuo0/game/lib/fig"
 	"github.com/ikuo0/game/lib/ginput"
 	"github.com/ikuo0/game/lib/log"
@@ -52,7 +52,10 @@ func (me RectDebugSt) Len() (int) {
 	return len(me.Rects)
 }
 
-func (me RectDebugSt) GetObject(i int) (action.Object) {
+func (me RectDebugSt) Hit(i int, obj action.Interface) {
+}
+
+func (me RectDebugSt) GetObject(i int) (action.Interface) {
 	return nil
 }
 
@@ -60,8 +63,6 @@ func (me RectDebugSt) HitRects(i int) ([]fig.Rect) {
 	return []fig.Rect{me.Rects[i]}
 }
 
-func (me RectDebugSt) Hit(int, action.Object) {
-}
 
 var RectDebug RectDebugSt
 

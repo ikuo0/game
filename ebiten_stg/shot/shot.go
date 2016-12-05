@@ -2,7 +2,7 @@
 package shot
 
 import (
-	"github.com/ikuo0/game/lib/action"
+	"github.com/ikuo0/game/ebiten_stg/action"
 	"github.com/ikuo0/game/lib/event"
 	"github.com/ikuo0/game/lib/fig"
 	"github.com/ikuo0/game/lib/gradian"
@@ -19,6 +19,7 @@ import (
 //########################################
 var SrcShot = fig.IntRect {0, 66, 0 + 60, 66 + 66}
 type Shot struct {
+	action.Object
 	fig.Point
 	Vanished   bool
 	V          *move.FixedVector
@@ -64,7 +65,7 @@ func (me *Shot) HitRects() ([]fig.Rect) {
 	}
 }
 
-func (me *Shot) Hit(obj action.Object) {
+func (me *Shot) Hit(obj action.Interface) {
 	me.Endurance--
 	me.Vanish()
 }

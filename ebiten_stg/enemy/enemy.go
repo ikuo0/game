@@ -2,10 +2,10 @@
 package enemy
 
 import (
+	"github.com/ikuo0/game/ebiten_stg/action"
 	"github.com/ikuo0/game/ebiten_stg/eventid"
 	"github.com/ikuo0/game/ebiten_stg/effect"
 	"github.com/ikuo0/game/ebiten_stg/world"
-	"github.com/ikuo0/game/lib/action"
 	"github.com/ikuo0/game/lib/anime"
 	"github.com/ikuo0/game/lib/event"
 	"github.com/ikuo0/game/lib/fig"
@@ -14,6 +14,7 @@ import (
 	"github.com/ikuo0/game/lib/radian"
 	"github.com/ikuo0/game/lib/script"
 	"github.com/ikuo0/game/lib/timer"
+	//"fmt"
 	"math"
 	"math/rand"
 )
@@ -37,17 +38,12 @@ var heli0Source = []fig.Rect {
 }
 
 type Heli0 struct {
-	fig.Point
+	action.Object
 	V         *move.Vector
 	Anime     *anime.Frames
-	Vanished  bool
 	Endurance int
 	MyStack   script.Stack
 	Timer     *timer.Frame
-}
-
-func (me *Heli0) GetPoint() (fig.Point) {
-	return me.Point
 }
 
 func (me *Heli0) Direction() (radian.Radian) {
@@ -84,12 +80,6 @@ func (me *Heli0) SuperUpdate(trigger event.Trigger) (bool) {
 	}
 }
 
-func (me *Heli0) Vanish() {
-	me.Vanished = true
-}
-func (me *Heli0) IsVanish() (bool) {
-	return me.Vanished
-}
 func (me *Heli0) Src() (x0, y0, x1, y1 int) {
 	x := heli0Source[me.Anime.Index()]
 	return int(x.Left), int(x.Top), int(x.Right), int(x.Bottom)
@@ -103,7 +93,7 @@ func (me *Heli0) HitRects() ([]fig.Rect) {
 	return []fig.Rect{{x, y, x + 48, y + 48}}
 }
 
-func (me *Heli0) Hit(obj action.Object) {
+func (me *Heli0) Hit(obj action.Interface) {
 	me.Endurance--
 }
 func (me *Heli0) Stack() (*script.Stack) {
@@ -112,7 +102,9 @@ func (me *Heli0) Stack() (*script.Stack) {
 
 func NewHeli0(pt fig.Point) (*Heli0) {
 	return &Heli0 {
-		Point: pt,
+		Object: action.Object {
+			Point: pt,
+		},
 		V:          move.NewVector(8, -90),
 		Anime:      anime.NewFrames(4, 4),
 		Endurance:  10,
@@ -154,7 +146,9 @@ func (me *Heli1) Update(trigger event.Trigger) {
 func NewHeli1(pt fig.Point) (*Heli1) {
 	return &Heli1 {
 		Heli0: Heli0 {
-			Point: pt,
+			Object: action.Object {
+				Point: pt,
+			},
 			V:          move.NewVector(-90, 8),
 			Anime:      anime.NewFrames(4, 4),
 			Endurance:  1,
@@ -182,7 +176,9 @@ func (me *Heli2) Update(trigger event.Trigger) {
 func NewHeli2(pt fig.Point) (*Heli2) {
 	return &Heli2 {
 		Heli0: Heli0 {
-			Point: pt,
+			Object: action.Object {
+				Point: pt,
+			},
 			V:          move.NewVector(-90, 8),
 			Anime:      anime.NewFrames(4, 4),
 			Endurance:  2,
@@ -217,17 +213,12 @@ var SrcAide = []fig.Rect {
 }
 
 type Aide struct {
-	fig.Point
+	action.Object
 	MyStack      script.Stack
 	Degree       gradian.Degree
-	Vanished     bool
 	Dead         bool
 	Endurance    int
 	ReamExplosion *effect.ReamExplosion
-}
-
-func (me *Aide) GetPoint() (fig.Point) {
-	return me.Point
 }
 
 func (me *Aide) Direction() (radian.Radian) {
@@ -260,12 +251,6 @@ func (me *Aide) Update(trigger event.Trigger) {
 	}
 }
 
-func (me *Aide) Vanish() {
-	me.Vanished = true
-}
-func (me *Aide) IsVanish() (bool) {
-	return me.Vanished
-}
 func (me *Aide) Src() (x0, y0, x1, y1 int) {
 	x := SrcAide[0]
 	return int(x.Left), int(x.Top), int(x.Right), int(x.Bottom)
@@ -283,7 +268,7 @@ func (me *Aide) HitRects() ([]fig.Rect) {
 	}
 }
 
-func (me *Aide) Hit(obj action.Object) {
+func (me *Aide) Hit(obj action.Interface) {
 	me.Endurance--
 	if me.Endurance <= 0 {
 		me.Dead = true
@@ -295,7 +280,9 @@ func (me *Aide) Stack() (*script.Stack) {
 }
 func NewAide(pt fig.Point) (*Aide) {
 	return &Aide {
-		Point: pt,
+		Object: action.Object {
+			Point: pt,
+		},
 		Endurance:  40,
 	}
 }
@@ -368,7 +355,9 @@ func (me *Boss1) HitRects() ([]fig.Rect) {
 func NewBoss1(pt fig.Point) (*Boss1) {
 	return &Boss1 {
 		Aide: &Aide {
-			Point: pt,
+			Object: action.Object {
+				Point: pt,
+			},
 			Endurance:  400,
 		},
 	}

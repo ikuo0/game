@@ -2,7 +2,7 @@
 package sheld
 
 import (
-	"github.com/ikuo0/game/lib/action"
+	"github.com/ikuo0/game/ebiten_stg/action"
 	"github.com/ikuo0/game/lib/anime"
 	"github.com/ikuo0/game/lib/event"
 	"github.com/ikuo0/game/lib/fig"
@@ -10,7 +10,6 @@ import (
 	"github.com/ikuo0/game/lib/move"
 	"github.com/ikuo0/game/lib/radian"
 	"github.com/ikuo0/game/lib/script"
-	"github.com/ikuo0/game/lib/sprites"
 	//"github.com/hajimehoshi/ebiten"
 	//"math"
 	//"fmt"
@@ -21,6 +20,7 @@ import (
 //########################################
 var SrcSheld = fig.IntRect {64, 64, 64 + 320, 64 + 320}
 type Sheld struct {
+	action.Object
 	fig.Point
 	Vanished   bool
 	Anime      *anime.Frames
@@ -71,7 +71,7 @@ func (me *Sheld) HitRects() ([]fig.Rect) {
 	}
 }
 
-func (me *Sheld) Hit(obj action.Object) {
+func (me *Sheld) Hit(obj action.Interface) {
 }
 
 func (me *Sheld) Pushed() {
@@ -89,29 +89,5 @@ func NewSheld(pt fig.Point) (*Sheld) {
 		Point: pt,
 		Anime:      anime.NewFrames(8, 7, 3, 2, 8),
 		V:          v,
-	}
-}
-
-//########################################
-//# Objects
-//########################################
-type Interface interface {
-	action.Object
-	Pushed()
-}
-
-type Objects struct {
-	*sprites.Objects
-}
-func (me *Objects) Get(i int) (Interface) {
-	return me.Objs[i].(Interface)
-}
-func (me *Objects) Pushed(i int) {
-	me.Get(i).Pushed()
-}
-
-func NewObjects() (*Objects) {
-	return &Objects {
-		Objects: sprites.NewObjects(),
 	}
 }

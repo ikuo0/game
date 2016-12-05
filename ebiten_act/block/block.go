@@ -2,9 +2,9 @@
 package block
 
 import (
+	"github.com/ikuo0/game/ebiten_act/action"
 	"github.com/ikuo0/game/ebiten_act/eventid"
 	"github.com/ikuo0/game/ebiten_act/funcs"
-	"github.com/ikuo0/game/lib/action"
 	"github.com/ikuo0/game/lib/event"
 	"github.com/ikuo0/game/lib/script"
 	"github.com/ikuo0/game/lib/fig"
@@ -27,7 +27,7 @@ var ImageSource = []fig.IntRect {
 }
 
 type Block struct {
-	fig.Point
+	action.Object
 }
 
 func (me *Block) GetPoint() (fig.Point) {
@@ -59,7 +59,7 @@ func (me *Block) HitRects() ([]fig.Rect) {
 	return []fig.Rect{{x, y, x + 32, y + 32}}
 }
 
-func (me *Block) Hit(obj action.Object) {
+func (me *Block) Hit(obj action.Interface) {
 }
 
 func (me *Block) Stack() (*script.Stack) {
@@ -68,7 +68,9 @@ func (me *Block) Stack() (*script.Stack) {
 
 func NewBlock(pt fig.Point) (*Block) {
 	return &Block {
-		Point: pt,
+		Object: action.Object {
+			Point: pt,
+		},
 	}
 }
 

@@ -3,10 +3,10 @@
 // 漢字
 
 import (
+	"github.com/ikuo0/game/ebiten_act/action"
 	"github.com/ikuo0/game/ebiten_act/eventid"
 	"github.com/ikuo0/game/ebiten_act/funcs"
 	"github.com/ikuo0/game/ebiten_act/world"
-	"github.com/ikuo0/game/lib/action"
 	"github.com/ikuo0/game/lib/anime"
 	"github.com/ikuo0/game/lib/event"
 	"github.com/ikuo0/game/lib/fig"
@@ -16,7 +16,6 @@ import (
 	"github.com/ikuo0/game/lib/move"
 	"github.com/ikuo0/game/lib/radian"
 	"github.com/ikuo0/game/lib/script"
-	"github.com/ikuo0/game/lib/sprites"
 	"github.com/ikuo0/game/lib/timer"
 	//"fmt"
 )
@@ -40,7 +39,7 @@ const JumpPower float64 = 13
 const MoveSpeed float64 = 7
 
 type Gun struct {
-	fig.Point
+	action.Object
 	FaceDirection funcs.FaceDirection
 }
 func (me *Gun) GetPoint() (fig.Point) {
@@ -71,7 +70,7 @@ func (me *Gun) SetRight(pt fig.Point) {
 }
 
 type Player struct {
-	fig.Point
+	action.Object
 	FaceDirection funcs.FaceDirection
 	Vanished      bool
 	Dead          bool
@@ -170,12 +169,6 @@ func (me *Player) Update(trigger event.Trigger) {
 	}
 }
 
-func (me *Player) Vanish() {
-	me.Vanished = true
-}
-func (me *Player) IsVanish() (bool) {
-	return me.Vanished
-}
 func (me *Player) Src() (x0, y0, x1, y1 int) {
 	idx := me.Anime.Index()
 	if me.FaceDirection == funcs.FaceLeft {
@@ -201,11 +194,11 @@ func (me *Player) HitRects() ([]fig.Rect) {
 	return []fig.Rect{{x, y, x + Width, y + Height}}
 }
 
-func (me *Player) Hit(origin action.Object) {
+func (me *Player) Hit(obj action.Interface) {
 	if me.Blackout || me.Beaten {
 	} else {
 		me.Beaten = true
-		if origin.GetPoint().X > me.X {
+		if obj.GetPoint().X > me.X {
 			me.Xinertia.Backward.Rate = me.V.Max
 		} else {
 			me.Xinertia.Advance.Rate = me.V.Max
@@ -214,18 +207,18 @@ func (me *Player) Hit(origin action.Object) {
 	}
 }
 
-func (me *Player) HitWall(origin action.Object) {
+func (me *Player) HitWall(obj action.Interface) {
 }
 
 func (me *Player) Expel(hitWalls []fig.Rect) {
 	descend := me.Gravity.Value() >= 0
-	pt, status := me.FallingRects.HitWall(me.Point, descend, hitWalls)
+	pt, status := me.FallingRects.HitFloor(me.Point, descend, hitWalls)
 
-	if (status & funcs.WallTop) != 0 {
+	if (status & funcs.FloorTop) != 0 {
 		me.Gravity.JumpCancel()
 	}
 
-	if (status & funcs.WallBottom) != 0 {
+	if (status & funcs.FloorBottom) != 0 {
 		me.CanJump = true
 		me.Gravity.Landing()
 	} else {
@@ -233,11 +226,11 @@ func (me *Player) Expel(hitWalls []fig.Rect) {
 	}
 
 /*
-	if (status & funcs.WallLeft) != 0 {
+	if (status & funcs.FloorLeft) != 0 {
 		me.Xinertia.Backward.Reset()
 	}
 
-	if (status & funcs.WallRight) != 0 {
+	if (status & funcs.FloorRight) != 0 {
 		me.Xinertia.Advance.Reset()
 	}
 	*/
@@ -256,7 +249,9 @@ func New(pt fig.Point) (*Player) {
 	hitAdjustY := float64(-64)
 
 	return &Player{
-		Point: pt,
+		Object: action.Object {
+			Point: pt,
+		},
 		Gravity:    funcs.NewGravity(),
 		//Jump:       move.NewForce(JumpPower),
 		V:          move.NewVector(0, 7),
@@ -266,47 +261,6 @@ func New(pt fig.Point) (*Player) {
 		Anime:      anime.NewFrames(8, 8),
 		FallingRects: funcs.NewFallingRects(hitWidth, hitHeight, hitAdjustX, hitAdjustY),
 		BlackoutTimer:  timer.NewFrame(0),
-	}
-}
-
-//########################################
-//# Objects
-//########################################
-type Interface interface {
-	action.Object
-	SetPoint(fig.Point)
-	HitWall(action.Object)
-	Expel([]fig.Rect)
-	SetInput(ginput.InputBits)
-}
-
-type Objects struct {
-	*sprites.Objects
-}
-
-func (me *Objects) Get(i int) (Interface) {
-	return me.Objs[i].(Interface)
-}
-
-func (me *Objects) HitWall(i int, obj action.Object) {
-	me.Get(i).HitWall(obj)
-}
-
-func (me *Objects) Expel(i int, hitWalls []fig.Rect) {
-	me.Get(i).Expel(hitWalls)
-}
-
-func (me *Objects) SetInput(i int, bits ginput.InputBits) {
-	me.Get(i).SetInput(bits)
-}
-
-func (me *Objects) SetPoint(i int, pt fig.Point) {
-	me.Get(i).SetPoint(pt)
-}
-
-func NewObjects() (*Objects) {
-	return &Objects {
-		Objects: sprites.NewObjects(),
 	}
 }
 

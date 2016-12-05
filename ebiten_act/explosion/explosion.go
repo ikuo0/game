@@ -2,11 +2,10 @@
 package explosion
 
 import (
-	"github.com/ikuo0/game/lib/action"
+	"github.com/ikuo0/game/ebiten_act/action"
 	"github.com/ikuo0/game/lib/event"
 	"github.com/ikuo0/game/lib/anime"
 	"github.com/ikuo0/game/lib/fig"
-	"github.com/ikuo0/game/lib/radian"
 )
 
 const Width = 128
@@ -32,24 +31,15 @@ func SrcCalc() ([]fig.IntRect) {
 var ImageSrc = SrcCalc()
 
 type Explosion struct {
-	fig.Point
+	action.Object
 	Anime *anime.Frames
-	Vanished bool
-}
-
-func (me *Explosion) GetPoint() (fig.Point) {
-	return me.Point
-}
-
-func (me *Explosion) Direction() (radian.Radian) {
-	return 0
 }
 
 func (me *Explosion) HitRects() ([]fig.Rect) {
 	return nil
 }
 
-func (me *Explosion) Hit(obj action.Object) {
+func (me *Explosion) Hit(obj action.Interface) {
 }
 
 func (me *Explosion) Update(trigger event.Trigger) {
@@ -59,12 +49,6 @@ func (me *Explosion) Update(trigger event.Trigger) {
 	}
 }
 
-func (me *Explosion) Vanish() {
-	me.Vanished = true
-}
-func (me *Explosion) IsVanish() (bool) {
-	return me.Vanished
-}
 func (me *Explosion) Src() (x0, y0, x1, y1 int) {
 	x := ImageSrc[me.Anime.Index()]
 	return x.Left, x.Top, x.Right, x.Bottom
@@ -75,7 +59,9 @@ func (me *Explosion) Dst() (x0, y0, x1, y1 int) {
 }
 func New(pt fig.Point, frames *anime.Frames) (*Explosion) {
 	return &Explosion {
-		Point: pt,
+		Object: action.Object {
+			Point: pt,
+		},
 		Anime:      frames,
 	}
 }

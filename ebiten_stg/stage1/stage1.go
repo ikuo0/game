@@ -2,7 +2,7 @@
 package stage1
 
 import (
-	myaction "github.com/ikuo0/game/ebiten_stg/action"
+	"github.com/ikuo0/game/ebiten_stg/action"
 	"github.com/ikuo0/game/ebiten_stg/bullet"
 	"github.com/ikuo0/game/ebiten_stg/enemy"
 	"github.com/ikuo0/game/ebiten_stg/explosion"
@@ -14,7 +14,6 @@ import (
 	"github.com/ikuo0/game/ebiten_stg/sheld"
 	"github.com/ikuo0/game/ebiten_stg/shot"
 	"github.com/ikuo0/game/ebiten_stg/world"
-	"github.com/ikuo0/game/lib/action"
 	"github.com/ikuo0/game/lib/event"
 	"github.com/ikuo0/game/lib/fig"
 	"github.com/ikuo0/game/lib/ginput"
@@ -24,7 +23,6 @@ import (
 	"github.com/ikuo0/game/lib/scene"
 	"github.com/ikuo0/game/lib/script"
 	"github.com/ikuo0/game/lib/sound"
-	"github.com/ikuo0/game/lib/sprites"
 	"github.com/ikuo0/game/lib/ttpl"
 	"github.com/hajimehoshi/ebiten"
 	"github.com/hajimehoshi/ebiten/ebitenutil"
@@ -80,34 +78,34 @@ func NewSounds() (*Sounds) {
 type Stage1 struct {
 	KeyConfig       *global.KeyConfigSt
 
-	Player          *player.Objects
+	Player          *action.RotaObjects
 	PlayerImage     *ebiten.Image
 	PlayerEntity    *player.Player
 
-	Shot            *sprites.Objects
+	Shot            *action.Objects
 	ShotImage       *ebiten.Image
 
-	Sheld           *sheld.Objects
+	Sheld           *action.Objects
 	SheldImage      *ebiten.Image
 
-	Heli1           *sprites.Objects
-	Heli2           *sprites.Objects
+	Heli1           *action.Objects
+	Heli2           *action.Objects
 	HeliImage       *ebiten.Image
 
-	Aide1           *sprites.RotaObjects
-	Aide2           *sprites.RotaObjects
+	Aide1           *action.RotaObjects
+	Aide2           *action.RotaObjects
 	AideImage       *ebiten.Image
 
-	Boss1           *sprites.RotaObjects
+	Boss1           *action.RotaObjects
 	Boss1Image      *ebiten.Image
 
-	Bullet1         *sprites.Objects
+	Bullet1         *action.Objects
 	Bullet1Image    *ebiten.Image
 
-	Explosion1      *sprites.Objects
+	Explosion1      *action.Objects
 	Explosion1Image *ebiten.Image
 
-	Vanishing1      *sprites.Objects
+	Vanishing1      *action.Objects
 
 	HitImage        *ebiten.Image
 
@@ -176,16 +174,10 @@ func (me *Stage1) Update() {
 		action.SetInput(bits, me.Player)
 
 		action.Update(me, me.Heli1, me.Heli2, me.Aide1, me.Aide2, me.Boss1, me.Bullet1, me.Player, me.Shot, me.Sheld, me.Vanishing1, me.Explosion1)
-		action.HitCheck(me.Shot, me.Heli1)
-		action.HitCheck(me.Shot, me.Heli2)
-		action.HitCheck(me.Shot, me.Aide1)
-		action.HitCheck(me.Shot, me.Aide2)
-		action.HitCheck(me.Shot, me.Boss1)
+		action.HitCheck(me.Shot, me.Heli1, me.Heli2, me.Aide1, me.Aide2, me.Boss1)
 		action.HitCheck(me.Bullet1, me.Sheld)
-		action.HitCheck(me.Player, me.Bullet1)
-		action.HitCheck(me.Player, me.Heli1)
-		action.HitCheck(me.Player, me.Heli2)
-		myaction.CarryPress(me.Sheld, me.Shot)
+		action.HitCheck(me.Player, me.Bullet1, me.Heli1, me.Heli2)
+		action.CarryPress(me.Sheld, me.Shot)
 		action.InScreen(me.Inner, me.Player)
 		action.GoOutside(me.Outer, me.Heli1, me.Heli2, me.Aide1, me.Aide2, me.Boss1, me.Shot, me.Sheld, me.Bullet1)
 		action.Clean(me.Heli1, me.Heli2, me.Aide1, me.Aide2, me.Boss1, me.Player, me.Shot, me.Sheld, me.Vanishing1, me.Explosion1, me.Bullet1)
@@ -255,7 +247,7 @@ func (me *Stage1) Draw(screen *ebiten.Image) {
 	}
 
 	if me.Debug {
-		hitObjs := sprites.NewHitObjects(me.Player, me.Shot, me.Sheld, me.Bullet1, me.Heli1, me.Heli2)
+		hitObjs := action.NewHitObjects(me.Player, me.Shot, me.Sheld, me.Bullet1, me.Heli1, me.Heli2)
 		screen.DrawImage(me.HitImage, hitObjs.Options())
 	}
 }
@@ -383,35 +375,35 @@ func New(args scene.Parameter) (scene.Interface) {
 	return &Stage1{
 		KeyConfig:       conf,
 
-		Player:          player.NewObjects(),
+		Player:          action.NewRotaObjects(),
 		PlayerImage:     LoadImage("./resource/image/Player0102.png"),
 
-		Shot:            sprites.NewObjects(),
+		Shot:            action.NewObjects(),
 		ShotImage:       LoadImage("./resource/image/PlayerSchott.PNG"),
 
-		Sheld:           sheld.NewObjects(),
+		Sheld:           action.NewObjects(),
 		SheldImage:      LoadImage("./resource/image/bomb.png"),
 
-		Heli1:           sprites.NewObjects(),
-		Heli2:           sprites.NewObjects(),
+		Heli1:           action.NewObjects(),
+		Heli2:           action.NewObjects(),
 		HeliImage:       LoadImage("./resource/image/h01.png"),
 
-		Aide1:           sprites.NewRotaObjects(),
-		Aide2:           sprites.NewRotaObjects(),
+		Aide1:           action.NewRotaObjects(),
+		Aide2:           action.NewRotaObjects(),
 		AideImage:       LoadImage("./resource/image/houdai01.PNG"),
 
-		Boss1:           sprites.NewRotaObjects(),
+		Boss1:           action.NewRotaObjects(),
 		Boss1Image:      LoadImage("./resource/image/middleBoss01.png"),
 
-		Bullet1:         sprites.NewObjects(),
+		Bullet1:         action.NewObjects(),
 		Bullet1Image:    LoadImage("./resource/image/tekidan01.PNG"),
 
-		Explosion1:      sprites.NewObjects(),
+		Explosion1:      action.NewObjects(),
 		Explosion1Image: LoadImage("./resource/image/bakuhatsuM01.png"),
 
 		HitImage:        hitImage,
 
-		Vanishing1:      sprites.NewObjects(),
+		Vanishing1:      action.NewObjects(),
 
 		Template:        ttpl.New(PanelTemplate),
 		Instrument:      instrument.NewInstrument(panelRect, color.RGBA{0xb2, 0x9a, 0x8e, 0xff}),
@@ -425,7 +417,7 @@ func New(args scene.Parameter) (scene.Interface) {
 		Outer:       fig.Rect{-64, -64, 564, 664},
 
 		Source:      script.NewSource([]script.Proc {
-		/*
+			/*
 			script.NewEventProc(eventid.Heli1, fig.Point{200, 0}),
 			script.NewWaitProc(1),
 			script.NewJumpProc(1),

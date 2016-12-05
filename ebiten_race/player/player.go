@@ -2,9 +2,9 @@
 package player
 
 import (
+	"github.com/ikuo0/game/ebiten_race/action"
 	//"github.com/ikuo0/game/ebiten_race/eventid"
 	"github.com/ikuo0/game/ebiten_race/world"
-	"github.com/ikuo0/game/lib/action"
 	"github.com/ikuo0/game/lib/event"
 	"github.com/ikuo0/game/lib/fig"
 	"github.com/ikuo0/game/lib/ginput"
@@ -12,7 +12,6 @@ import (
 	"github.com/ikuo0/game/lib/move"
 	"github.com/ikuo0/game/lib/radian"
 	"github.com/ikuo0/game/lib/script"
-	"github.com/ikuo0/game/lib/sprites"
 	"math"
 	"fmt"
 )
@@ -30,15 +29,11 @@ const CollisionAdjustY = -12
 var ImageSrc = fig.IntRect {0, 0, Width, Height}
 
 type Player struct {
-	fig.Point
-	PrePoint   fig.Point
+	action.Object
+	PrePoint    fig.Point
 	V           *move.Vector
 	XYcomponent *move.XYcomponent
 	InputBits  ginput.InputBits
-}
-
-func (me *Player) GetPoint() (fig.Point) {
-	return me.Point
 }
 
 func (me *Player) Direction() (radian.Radian) {
@@ -75,12 +70,6 @@ func (me *Player) Update(trigger event.Trigger) {
 	me.Y += math.Sin(float64(me.V.Radian)) * 4
 	*/
 }
-
-func (me *Player) Vanish() {
-}
-func (me *Player) IsVanish() (bool) {
-	return false
-}
 func (me *Player) Src() (x0, y0, x1, y1 int) {
 	return ImageSrc.Left, ImageSrc.Top, ImageSrc.Right, ImageSrc.Bottom
 }
@@ -96,7 +85,11 @@ func (me *Player) HitRects() ([]fig.Rect) {
 	return []fig.Rect{{x, y, x + CollisionWidth, y + CollisionHeight}}
 }
 
-func (me *Player) Hit(obj action.Object) {
+func (me *Player) HitLines() ([]fig.Line) {
+	return []fig.Line{{me.PrePoint, me.Point}}
+}
+
+func (me *Player) Hit(obj action.Interface) {
 	if rects := obj.HitRects(); len(rects) != 1 {
 		return
 	} else {
@@ -114,24 +107,34 @@ func (me *Player) Hit(obj action.Object) {
 		myRad := gradian.Aim(me.PrePoint, me.Point)
 
 		var wallRad radian.Radian
+		wallDeg := int(0)
 		if rect.LeftLine().Hit(&myVector) {
 			fmt.Println("Left Line")
 			wallRad = gradian.DegreeToRadian(90)
+			wallDeg = 90
 		} else if rect.TopLine().Hit(&myVector) {
 			fmt.Println("Top Line")
 			wallRad = gradian.DegreeToRadian(0)
+			wallDeg = 0
 		} else if rect.RightLine().Hit(&myVector) {
 			fmt.Println("Right Line")
 			wallRad = gradian.DegreeToRadian(90)
+			wallDeg = 90
 		} else if rect.BottomLine().Hit(&myVector) {
 			fmt.Println("Bottom Line")
 			wallRad = gradian.DegreeToRadian(0)
+			wallDeg = 0
 		} else {
 			wallRad = myRad + (math.Pi / 2)
 		}
 
+		newDeg := (me.V.Degree.Deg * -1) + wallDeg
+
 		//fmt.Println("wallRad", wallRad, radian.ToDeg(wallRad))
-		me.V.Degree.Deg = gradian.RadianToDegree(myRad - wallRad)
+		//me.V.Degree.Deg = gradian.RadianToDegree(myRad - wallRad)
+		me.V.Degree.Deg = newDeg
+		return
+		fmt.Println(wallRad)
 
 /*
 		reflectRad := myRad - wallRad
@@ -192,33 +195,10 @@ func (me *Player) Stack() (*script.Stack) {
 const MaxSpeed float64 = 6
 func NewPlayer(pt fig.Point) (*Player) {
 	return &Player{
-		Point:  pt,
+		Object: action.Object {
+			Point:  pt,
+		},
 		V:           move.NewVector(90, MaxSpeed),
 		XYcomponent: move.NewXYcomponent(0.05),
 	}
 }
-
-
-//########################################
-//# Objects
-//########################################
-type Interface interface {
-	action.Object
-	SetInput(ginput.InputBits)
-}
-
-type Objects struct {
-	*sprites.RotaObjects
-}
-func (me *Objects) Get(i int) (Interface) {
-	return me.Objs[i].(Interface)
-}
-func (me *Objects) SetInput(i int, bits ginput.InputBits) {
-	me.Get(i).SetInput(bits)
-}
-func NewObjects() (*Objects) {
-	return &Objects {
-		RotaObjects: sprites.NewRotaObjects(),
-	}
-}
-

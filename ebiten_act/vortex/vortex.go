@@ -2,12 +2,11 @@
 package vortex
 
 import (
+	"github.com/ikuo0/game/ebiten_act/action"
 	"github.com/ikuo0/game/ebiten_act/eventid"
-	"github.com/ikuo0/game/lib/action"
 	"github.com/ikuo0/game/lib/event"
 	"github.com/ikuo0/game/lib/script"
 	"github.com/ikuo0/game/lib/fig"
-	"github.com/ikuo0/game/lib/radian"
 )
 
 //########################################
@@ -28,17 +27,8 @@ var ImageSource = []fig.IntRect {
 }
 
 type Vortex struct {
-	fig.Point
+	action.Object
 	Taken    bool
-	Vanished bool
-}
-
-func (me *Vortex) GetPoint() (fig.Point) {
-	return me.Point
-}
-
-func (me *Vortex) Direction() (radian.Radian) {
-	return 0
 }
 
 func (me *Vortex) Update(trigger event.Trigger) {
@@ -48,13 +38,6 @@ func (me *Vortex) Update(trigger event.Trigger) {
 	}
 }
 
-func (me *Vortex) Vanish() {
-	me.Vanished = true
-}
-
-func (me *Vortex) IsVanish() (bool) {
-	return me.Vanished
-}
 func (me *Vortex) Src() (x0, y0, x1, y1 int) {
 	x := ImageSource[0]
 	return x.Left, x.Top, x.Right, x.Bottom
@@ -68,7 +51,7 @@ func (me *Vortex) HitRects() ([]fig.Rect) {
 	return []fig.Rect{{x, y, x + Width, y + Height}}
 }
 
-func (me *Vortex) Hit(obj action.Object) {
+func (me *Vortex) Hit(obj action.Interface) {
 	me.Taken = true
 }
 
@@ -78,6 +61,8 @@ func (me *Vortex) Stack() (*script.Stack) {
 
 func New(pt fig.Point) (*Vortex) {
 	return &Vortex {
-		Point: pt,
+		Object: action.Object {
+			Point: pt,
+		},
 	}
 }
