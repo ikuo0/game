@@ -48,7 +48,7 @@ type Line struct {
 	End   Point
 }
 
-func (me Line) Hit(l *Line) (bool) {
+func (me Line) Hit(l Line) (bool) {
 	ta := (l.Start.X - l.End.X) * (me.Start.Y - l.Start.Y) + (l.Start.Y - l.End.Y) * (l.Start.X - me.Start.X);
 	tb := (l.Start.X - l.End.X) * (me.End.Y - l.Start.Y) + (l.Start.Y - l.End.Y) * (l.Start.X - me.End.X);
 	tc := (me.Start.X - me.End.X) * (l.Start.Y - me.Start.Y) + (me.Start.Y - me.End.Y) * (me.Start.X - l.Start.X);
@@ -125,7 +125,7 @@ func (me *Rect) Add(x, y float64) {
 	me.Bottom += y
 }
 
-func (me Rect) Hit(r *Rect) (bool) {
+func (me Rect) Hit(r Rect) (bool) {
 	return me.Left < r.Right &&
 		me.Right > r.Left &&
 		me.Top < r.Bottom &&

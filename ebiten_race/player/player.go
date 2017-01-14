@@ -8,12 +8,12 @@ import (
 	"github.com/ikuo0/game/lib/event"
 	"github.com/ikuo0/game/lib/fig"
 	"github.com/ikuo0/game/lib/ginput"
-	"github.com/ikuo0/game/lib/gradian"
+	//"github.com/ikuo0/game/lib/gradian"
 	"github.com/ikuo0/game/lib/move"
 	"github.com/ikuo0/game/lib/radian"
 	"github.com/ikuo0/game/lib/script"
-	"math"
-	"fmt"
+	//"math"
+	//"fmt"
 )
 
 var ShotCommand    = []ginput.InputBits {ginput.Nkey1, ginput.Key1}
@@ -80,16 +80,20 @@ func (me *Player) Dst() (x0, y0, x1, y1 int) {
 func (me *Player) SetInput(bits ginput.InputBits) {
 	me.InputBits = bits
 }
-func (me *Player) HitRects() ([]fig.Rect) {
+func (me *Player) GetRect() (fig.Rect) {
 	x, y := me.X + CollisionAdjustX, me.Y + CollisionAdjustY
-	return []fig.Rect{{x, y, x + CollisionWidth, y + CollisionHeight}}
+	return fig.Rect{x, y, x + CollisionWidth, y + CollisionHeight}
 }
 
-func (me *Player) HitLines() ([]fig.Line) {
-	return []fig.Line{{me.PrePoint, me.Point}}
+func (me *Player) HitRect(obj action.Interface) {
 }
 
-func (me *Player) Hit(obj action.Interface) {
+func (me *Player) GetLine() (fig.Line) {
+	return fig.Line{me.PrePoint, me.Point}
+}
+
+func (me *Player) HitLine(obj action.Interface) {
+/*
 	if rects := obj.HitRects(); len(rects) != 1 {
 		return
 	} else {
@@ -135,6 +139,7 @@ func (me *Player) Hit(obj action.Interface) {
 		me.V.Degree.Deg = newDeg
 		return
 		fmt.Println(wallRad)
+*/
 
 /*
 		reflectRad := myRad - wallRad
@@ -145,7 +150,7 @@ func (me *Player) Hit(obj action.Interface) {
 		from := me.PrePoint
 		aimRad := radian.Radian(math.Atan2(aim.Y - from.Y, aim.X - from.X))
 		*/
-	}
+//	}
 
 
 	/*
@@ -162,6 +167,8 @@ func (me *Player) Hit(obj action.Interface) {
 	aimRad := radian.Radian(math.Atan2(aim.Y - orig.Y, aim.X - orig.X))
 	*/
 	//me.V.Radian = me.V.Radian + math.Pi
+
+
 /*
 	c := math.Cos(float64(aimRad))
 	if c > 0 {
@@ -177,17 +184,22 @@ func (me *Player) Hit(obj action.Interface) {
 		me.V.Up.Accel(math.Abs(s))
 	}
 	*/
+
+
 /*
 	c := math.Cos(float64(me.Radian))
 	s := math.Sin(float64(me.Radian))
 */
+
 /*
 			aim := world.GetPlayer().GetPoint()
 			aimRad := radian.Radian(math.Atan2(aim.Y - me.Y, aim.X - me.X))
 			trigger.EventTrigger(eventid.Bullet2, aimRad, me)
 			me.Timer.Start(10000)
 */
+
 }
+
 func (me *Player) Stack() (*script.Stack) {
 	return nil
 }

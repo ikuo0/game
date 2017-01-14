@@ -24,10 +24,10 @@ type Interface interface {
 	Src() (x0, y0, x1, y1 int)
 	Dst() (x0, y0, x1, y1 int)
 	SetInput(ginput.InputBits)
-	HitRects() ([]fig.Rect)
-	Hit(Interface)
-	HitWall(obj Interface)
-	Expel([]fig.Rect)
+	GetRect() (fig.Rect)
+	HitRect(Interface)
+	GetLine() (fig.Line)
+	HitLine(Interface)
 }
 
 //########################################
@@ -73,17 +73,18 @@ func (me *Object) Dst() (x0, y0, x1, y1 int) {
 	return 0, 0, 0, 0
 }
 
-func (me *Object) HitRects() ([]fig.Rect) {
-	return nil
+func (me *Object) GetRect() (fig.Rect) {
+	return fig.Rect{}
 }
 
-func (me *Object) Hit(Interface) {
+func (me *Object) HitRect(Interface) {
 }
 
-func (me *Object) HitWall(obj Interface) {
+func (me *Object) GetLine() (fig.Line) {
+	return fig.Line{}
 }
 
-func (me *Object) Expel([]fig.Rect) {
+func (me *Object) HitLine(Interface) {
 }
 
 //########################################
@@ -117,21 +118,22 @@ func (me *Objects) SetInput(i int, bits ginput.InputBits) {
 	me.Objs[i].SetInput(bits)
 }
 
-func (me *Objects) HitRects(i int) ([]fig.Rect) {
-	return me.Objs[i].HitRects()
+func (me *Objects) GetRect(i int) (fig.Rect) {
+	return me.Objs[i].GetRect()
 }
 
-func (me *Objects) Hit(i int, obj Interface) {
-	me.Objs[i].Hit(obj)
+func (me *Objects) HitRect(i int, obj Interface) {
+	me.Objs[i].HitRect(obj)
 }
 
-func (me *Objects) HitWall(i int, obj Interface) {
-	me.Objs[i].HitWall(obj)
+func (me *Objects) GetLine(i int) (fig.Line) {
+	return me.Objs[i].GetLine()
 }
 
-func (me *Objects) Expel(i int, hitWalls []fig.Rect) {
-	me.Objs[i].Expel(hitWalls)
+func (me *Objects) HitLine(i int, obj Interface) {
+	me.Objs[i].HitLine(obj)
 }
+
 func (me *Objects) Update(i int, trigger event.Trigger) {
 	me.Objs[i].Update(trigger)
 }
@@ -214,11 +216,11 @@ func (me *HitObjects) Options() (*ebiten.DrawImageOptions) {
 		ImageParts: me,
 	}
 }
-func NewHitObjects(who ...CanHit) (*HitObjects) {
+func NewHitObjects(who ...CanRectHit) (*HitObjects) {
 	rects := []fig.Rect{}
 	for _, x := range who {
 		for i := 0; i < x.Len(); i++ {
-			rects = append(rects, x.HitRects(i)...)
+			rects = append(rects, x.GetRect(i))
 		}
 	}
 	return &HitObjects {
@@ -280,75 +282,53 @@ func Script(input script.Input, output event.Trigger, who ...HasScript) {
 //########################################
 //# HitRect
 //########################################
-type CanHit interface {
+type CanRectHit interface {
 	Len() (int)
-	HitRects(int) ([]fig.Rect)
-	Hit(int, Interface)
+	GetRect(int) (fig.Rect)
+	HitRect(int, Interface)
 	GetObject(int) (Interface)
 }
 
-func IsHit(a, b []fig.Rect) (bool) {
-	for i, _ := range a {
-		for j, _ := range b {
-			if a[i].Hit(&b[j]) {
-				return true
+func HitCheckRect(subjective CanRectHit, objective ...CanRectHit) {
+	for a := 0; a < subjective.Len(); a++ {
+		sRect := subjective.GetRect(a)
+		for _, objs := range objective{
+			for b := 0; b < objs.Len(); b++ {
+				if sRect.Hit(objs.GetRect(b)) {
+					subjective.HitRect(a, objs.GetObject(b))
+					objs.HitRect(a, subjective.GetObject(a))
+				}
 			}
 		}
 	}
+}
+
+
+//########################################
+//# HitRect
+//########################################
+type CanLineHit interface {
+	Len() (int)
+	GetLine(int) (fig.Line)
+	HitLine(int, Interface)
+	GetObject(int) (Interface)
+}
+
+func IsHit(a, b fig.Line) (bool) {
 	return false
 }
 
-func HitCheck(subjective CanHit, objective ...CanHit) {
+func HitCheckLine(subjective CanLineHit, objective ...CanLineHit) {
 	for a := 0; a < subjective.Len(); a++ {
+		sLine := subjective.GetLine(a)
 		for _, objs := range objective{
 			for b := 0; b < objs.Len(); b++ {
-				if IsHit(subjective.HitRects(a), objs.HitRects(b)) {
-					subjective.Hit(a, objs.GetObject(b))
-					objs.Hit(b, subjective.GetObject(a))
+				if sLine.Hit(objs.GetLine(b)) {
+					subjective.HitLine(a, objs.GetObject(b))
+					objs.HitLine(b, subjective.GetObject(a))
 				}
 			}
 		}
-	}
-}
-
-func UniHitCheck(subjective CanHit, objective ...CanHit) {
-	for a := 0; a < subjective.Len(); a++ {
-		for _, objs := range objective{
-			for b := 0; b < objs.Len(); b++ {
-				if IsHit(subjective.HitRects(a), objs.HitRects(b)) {
-					subjective.Hit(a, objs.GetObject(b))
-				}
-			}
-		}
-	}
-}
-
-//########################################
-//# HitWall
-//########################################
-type LawsOfPhisics interface {
-	Len() (int)
-	HitRects(int) ([]fig.Rect)
-	HitWall(int, Interface)
-	//Hit(int, Object)
-	GetObject(int) (Interface)
-	Expel(int, []fig.Rect)
-}
-func HitWall(subjective LawsOfPhisics, allWalls ...CanHit) {
-	hitWalls := []fig.Rect{}
-	for a := 0; a < subjective.Len(); a++ {
-		for _, walls := range allWalls {
-			for b := 0; b < walls.Len(); b++ {
-				if IsHit(subjective.HitRects(a), walls.HitRects(b)) {
-					subjective.HitWall(a, walls.GetObject(b))
-					walls.Hit(b, subjective.GetObject(a))
-					hitWalls = append(hitWalls, walls.HitRects(b)...)
-				}
-			}
-		}
-	}
-	for i := 0; i < subjective.Len(); i++ {
-		subjective.Expel(i, hitWalls)
 	}
 }
 

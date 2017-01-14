@@ -77,7 +77,7 @@ func (me *Wall) Direction() (radian.Radian) {
 	return 0
 }
 
-func (me *Wall) Line() (fig.Line) {
+func (me *Wall) GetLine() (fig.Line) {
 	return me.Kind.Line().Relative(me.Point)
 }
 
@@ -100,12 +100,12 @@ func (me *Wall) Dst() (x0, y0, x1, y1 int) {
 	x, y := int(me.X) + AdjustX, int(me.Y) + AdjustY
 	return x, y, x + Width, y + Height
 }
-func (me *Wall) HitRects() ([]fig.Rect) {
+func (me *Wall) GetRect() (fig.Rect) {
 	x, y := me.X + AdjustX, me.Y + AdjustY
-	return []fig.Rect{{x, y, x + Width, y + Height}}
+	return fig.Rect{x, y, x + Width, y + Height}
 }
 
-func (me *Wall) Hit(obj action.Interface) {
+func (me *Wall) HitRect(obj action.Interface) {
 	me.Hitme = true
 }
 

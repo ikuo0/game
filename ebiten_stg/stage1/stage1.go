@@ -78,34 +78,34 @@ func NewSounds() (*Sounds) {
 type Stage1 struct {
 	KeyConfig       *global.KeyConfigSt
 
-	Player          *action.RotaObjects
+	Player          action.Objects
 	PlayerImage     *ebiten.Image
 	PlayerEntity    *player.Player
 
-	Shot            *action.Objects
+	Shot            action.Objects
 	ShotImage       *ebiten.Image
 
-	Sheld           *action.Objects
+	Sheld           action.Objects
 	SheldImage      *ebiten.Image
 
-	Heli1           *action.Objects
-	Heli2           *action.Objects
+	Heli1           action.Objects
+	Heli2           action.Objects
 	HeliImage       *ebiten.Image
 
-	Aide1           *action.RotaObjects
-	Aide2           *action.RotaObjects
+	Aide1           action.Objects
+	Aide2           action.Objects
 	AideImage       *ebiten.Image
 
-	Boss1           *action.RotaObjects
+	Boss1           action.Objects
 	Boss1Image      *ebiten.Image
 
-	Bullet1         *action.Objects
+	Bullet1         action.Objects
 	Bullet1Image    *ebiten.Image
 
-	Explosion1      *action.Objects
+	Explosion1      action.Objects
 	Explosion1Image *ebiten.Image
 
-	Vanishing1      *action.Objects
+	Vanishing1      action.Objects
 
 	HitImage        *ebiten.Image
 
@@ -180,7 +180,18 @@ func (me *Stage1) Update() {
 		action.CarryPress(me.Sheld, me.Shot)
 		action.InScreen(me.Inner, me.Player)
 		action.GoOutside(me.Outer, me.Heli1, me.Heli2, me.Aide1, me.Aide2, me.Boss1, me.Shot, me.Sheld, me.Bullet1)
-		action.Clean(me.Heli1, me.Heli2, me.Aide1, me.Aide2, me.Boss1, me.Player, me.Shot, me.Sheld, me.Vanishing1, me.Explosion1, me.Bullet1)
+		//action.Clean(me.Heli1, me.Heli2, me.Aide1, me.Aide2, me.Boss1, me.Player, me.Shot, me.Sheld, me.Vanishing1, me.Explosion1, me.Bullet1)
+		me.Heli1 = action.Clean(me.Heli1)
+		me.Heli2 = action.Clean(me.Heli2)
+		me.Aide1 = action.Clean(me.Aide1)
+		me.Aide2 = action.Clean(me.Aide2)
+		me.Boss1 = action.Clean(me.Boss1)
+		me.Player = action.Clean(me.Player)
+		me.Shot = action.Clean(me.Shot)
+		me.Sheld = action.Clean(me.Sheld)
+		me.Vanishing1 = action.Clean(me.Vanishing1)
+		me.Explosion1 = action.Clean(me.Explosion1)
+		me.Bullet1 = action.Clean(me.Bullet1)
 	}
 
 	me.DirectPushed.Update()
@@ -211,17 +222,17 @@ func (me *Stage1) ObjectCount() (int) {
 }
 
 func (me *Stage1) Draw(screen *ebiten.Image) {
-	action.ExDraw(screen, me.PlayerImage, me.Player)
-	action.ExDraw(screen, me.AideImage, me.Aide1)
-	action.ExDraw(screen, me.AideImage, me.Aide2)
-	action.ExDraw(screen, me.Boss1Image, me.Boss1)
-	screen.DrawImage(me.HeliImage, me.Heli1.Options())
-	screen.DrawImage(me.HeliImage, me.Heli2.Options())
-	screen.DrawImage(me.ShotImage, me.Shot.Options())
-	screen.DrawImage(me.SheldImage, me.Sheld.Options())
-	screen.DrawImage(me.Bullet1Image, me.Vanishing1.Options())
-	screen.DrawImage(me.Explosion1Image, me.Explosion1.Options())
-	screen.DrawImage(me.Bullet1Image, me.Bullet1.Options())
+	action.DrawImageRota(screen, me.PlayerImage, me.Player)
+	action.DrawImageRota(screen, me.AideImage, me.Aide1)
+	action.DrawImageRota(screen, me.AideImage, me.Aide2)
+	action.DrawImageRota(screen, me.Boss1Image, me.Boss1)
+	screen.DrawImage(me.HeliImage, action.DrawOptions(me.Heli1))
+	screen.DrawImage(me.HeliImage, action.DrawOptions(me.Heli2))
+	screen.DrawImage(me.ShotImage, action.DrawOptions(me.Shot))
+	screen.DrawImage(me.SheldImage, action.DrawOptions(me.Sheld))
+	screen.DrawImage(me.Bullet1Image, action.DrawOptions(me.Vanishing1))
+	screen.DrawImage(me.Explosion1Image, action.DrawOptions(me.Explosion1))
+	screen.DrawImage(me.Bullet1Image, action.DrawOptions(me.Bullet1))
 
 
 	me.Template.SetFloat("FrameCount", ebiten.CurrentFPS())
@@ -256,7 +267,7 @@ func (me *Stage1) EventTrigger(id event.Id, argument interface{}, origin orig.In
 	switch id {
 		case eventid.Player:
 			me.PlayerEntity = player.NewPlayer(world.StartGetPoint())
-			me.Player.Occure(me.PlayerEntity)
+			me.Player = append(me.Player, me.PlayerEntity)
 
 		case eventid.BgmPlay:
 			//me.Sound.Bgm.Play(32)
@@ -283,43 +294,41 @@ func (me *Stage1) EventTrigger(id event.Id, argument interface{}, origin orig.In
 			me.Result = result.New(strings.Split(msg, "\n"))
 
 		case eventid.Shot:
-			//pt := argument.(fig.Point)
-			me.Shot.Occure(shot.NewShot(origin.GetPoint()))
+			me.Shot = append(me.Shot, shot.NewShot(origin.GetPoint()))
 
 		case eventid.Sheld:
-			//pt := argument.(fig.Point)
 			if me.Sheld.Len() < 3 {
-				me.Sheld.Occure(sheld.NewSheld(origin.GetPoint()))
+				me.Sheld = append(me.Sheld, sheld.NewSheld(origin.GetPoint()))
 			}
 
 		case eventid.Heli1:
 			pt := argument.(fig.Point)
-			me.Heli1.Occure(enemy.NewHeli1(pt))
+			me.Heli1 = append(me.Heli1, enemy.NewHeli1(pt))
 
 		case eventid.Heli2:
 			pt := argument.(fig.Point)
-			me.Heli2.Occure(enemy.NewHeli2(pt))
+			me.Heli2 = append(me.Heli2, enemy.NewHeli2(pt))
 
 		case eventid.Aide1:
 			pt := argument.(fig.Point)
-			me.Aide1.Occure(enemy.NewAide(pt))
+			me.Aide1 = append(me.Aide1, enemy.NewAide(pt))
 
 		case eventid.Aide2:
 			pt := argument.(fig.Point)
-			me.Aide2.Occure(enemy.NewAide(pt))
+			me.Aide2 = append(me.Aide2, enemy.NewAide(pt))
 
 		case eventid.Boss1:
 			pt := argument.(fig.Point)
-			me.Boss1Entity =enemy.NewBoss1(pt); 
-			me.Boss1.Occure(me.Boss1Entity)
+			me.Boss1Entity = enemy.NewBoss1(pt); 
+			me.Boss1 = append(me.Boss1, me.Boss1Entity)
 
 		case eventid.Bullet1:
 			rad := origin.Direction() + argument.(radian.Radian)
-			me.Bullet1.Occure(bullet.NewBullet1(origin.GetPoint(), rad))
+			me.Bullet1 = append(me.Bullet1, bullet.NewBullet1(origin.GetPoint(), rad))
 
 		case eventid.Bullet2:
 			rad := argument.(radian.Radian)
-			me.Bullet1.Occure(bullet.NewBullet1(origin.GetPoint(), rad))
+			me.Bullet1 = append(me.Bullet1, bullet.NewBullet1(origin.GetPoint(), rad))
 
 		case eventid.Explosion1:
 			me.Sound.Explosion.Play(0)
@@ -328,7 +337,7 @@ func (me *Stage1) EventTrigger(id event.Id, argument interface{}, origin orig.In
 				pt.X += relative.X
 				pt.Y += relative.Y
 			}
-			me.Explosion1.Occure(explosion.NewExplosion1(pt))
+			me.Explosion1 = append(me.Explosion1, explosion.NewExplosion1(pt))
 
 		case eventid.Vanishing1:
 			pt := origin.GetPoint()
@@ -336,7 +345,7 @@ func (me *Stage1) EventTrigger(id event.Id, argument interface{}, origin orig.In
 				pt.X += relative.X
 				pt.Y += relative.Y
 			}
-			me.Vanishing1.Occure(explosion.NewVanishing1(pt))
+			me.Vanishing1 = append(me.Vanishing1, explosion.NewVanishing1(pt))
 
 		case eventid.Score:
 			n := argument.(int)
@@ -375,7 +384,7 @@ func New(args scene.Parameter) (scene.Interface) {
 	return &Stage1{
 		KeyConfig:       conf,
 
-		Player:          action.NewRotaObjects(),
+		Player:          action.NewObjects(),
 		PlayerImage:     LoadImage("./resource/image/Player0102.png"),
 
 		Shot:            action.NewObjects(),
@@ -388,11 +397,11 @@ func New(args scene.Parameter) (scene.Interface) {
 		Heli2:           action.NewObjects(),
 		HeliImage:       LoadImage("./resource/image/h01.png"),
 
-		Aide1:           action.NewRotaObjects(),
-		Aide2:           action.NewRotaObjects(),
+		Aide1:           action.NewObjects(),
+		Aide2:           action.NewObjects(),
 		AideImage:       LoadImage("./resource/image/houdai01.PNG"),
 
-		Boss1:           action.NewRotaObjects(),
+		Boss1:           action.NewObjects(),
 		Boss1Image:      LoadImage("./resource/image/middleBoss01.png"),
 
 		Bullet1:         action.NewObjects(),

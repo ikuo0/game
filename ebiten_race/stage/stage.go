@@ -135,7 +135,8 @@ func (me *Stage1) Update() {
 		action.SetInput(bits, me.Player)
 
 		action.Update(me, me.Player, me.Wall)
-		action.HitCheck(me.Player, me.Wall)
+		action.HitCheckLine(me.Player, me.Wall)
+		//action.HitCheck(me.Player, me.Wall)
 		//action.Clean()
 	}
 
