@@ -89,109 +89,23 @@ func (me *Object) Expel([]fig.Rect) {
 //########################################
 //# Objects
 //########################################
-type Objects struct {
-	Objs []Interface
+type Objects []Interface
+
+func (me Objects) Len() (int) {
+	return len(me)
 }
 
-func (me *Objects) SetPoint(i int, pt fig.Point) {
-	me.Objs[i].SetPoint(pt)
+func (me Objects) Src(i int) (x0, y0, x1, y1 int) {
+	return me[i].Src()
 }
 
-func (me *Objects) GetObject(i int) (Interface) {
-	return me.Objs[i]
+func (me Objects) Dst(i int) (x0, y0, x1, y1 int) {
+	return me[i].Dst()
 }
 
-func (me *Objects) Len() (int) {
-	return len(me.Objs)
+func NewObjects() (Objects) {
+	return nil
 }
-
-func (me *Objects) Src(i int) (x0, y0, x1, y1 int) {
-	return me.Objs[i].Src()
-}
-
-func (me *Objects) Dst(i int) (x0, y0, x1, y1 int) {
-	return me.Objs[i].Dst()
-}
-
-func (me *Objects) SetInput(i int, bits ginput.InputBits) {
-	me.Objs[i].SetInput(bits)
-}
-
-func (me *Objects) HitRects(i int) ([]fig.Rect) {
-	return me.Objs[i].HitRects()
-}
-
-func (me *Objects) Hit(i int, obj Interface) {
-	me.Objs[i].Hit(obj)
-}
-
-func (me *Objects) HitWall(i int, obj Interface) {
-	me.Objs[i].HitWall(obj)
-}
-
-func (me *Objects) Expel(i int, hitWalls []fig.Rect) {
-	me.Objs[i].Expel(hitWalls)
-}
-func (me *Objects) Update(i int, trigger event.Trigger) {
-	me.Objs[i].Update(trigger)
-}
-
-func (me *Objects) Vanish(i int) {
-	me.Objs[i].Vanish()
-}
-
-func (me *Objects) Clean(i int) {
-	newObjs := []Interface{}
-	for _, v := range me.Objs {
-		if !v.IsVanish() {
-			newObjs = append(newObjs, v)
-		}
-	}
-	me.Objs = newObjs
-}
-
-func (me *Objects) Options() (*ebiten.DrawImageOptions) {
-	return &ebiten.DrawImageOptions {
-		ImageParts: me,
-	}
-}
-
-func (me *Objects) Occure(objIf Interface) {
-	me.Objs = append(me.Objs, objIf)
-}
-
-func NewObjects() (*Objects) {
-	return &Objects {}
-}
-
-//########################################
-//# RotaObjects
-//########################################
-type RotaObjects struct {
-	*Objects
-}
-
-func (me *RotaObjects) DrawOption(i int) (*ebiten.DrawImageOptions) {
-	sx0, sy0, sx1, sy1 := me.Src(i)
-	dx0, dy0, dx1, dy1 := me.Dst(i)
-	opt := ebiten.DrawImageOptions {
-		ImageParts: NewOneSprites(sx0, sy0, sx1, sy1, dx0, dy0, dx1, dy1),
-	}
-
-	o := me.Objs[i]
-	pt := o.GetPoint()
-	opt.GeoM.Translate(float64(-pt.X), float64(-pt.Y))
-	opt.GeoM.Rotate(float64(o.Direction()))
-	opt.GeoM.Translate(float64(pt.X), float64(pt.Y))
-	return &opt
-}
-
-func NewRotaObjects() (*RotaObjects) {
-	return &RotaObjects {
-		Objects: NewObjects(),
-	}
-}
-
 
 //########################################
 //# DrawHitRects
@@ -214,11 +128,11 @@ func (me *HitObjects) Options() (*ebiten.DrawImageOptions) {
 		ImageParts: me,
 	}
 }
-func NewHitObjects(who ...CanHit) (*HitObjects) {
+func NewHitObjects(who ...Objects) (*HitObjects) {
 	rects := []fig.Rect{}
 	for _, x := range who {
 		for i := 0; i < x.Len(); i++ {
-			rects = append(rects, x.HitRects(i)...)
+			rects = append(rects, x[i].HitRects()...)
 		}
 	}
 	return &HitObjects {
@@ -231,15 +145,10 @@ func NewHitObjects(who ...CanHit) (*HitObjects) {
 //########################################
 //# SetInput
 //########################################
-type CanOperate interface {
-	Len() (int)
-	SetInput(int, ginput.InputBits)
-}
-
-func SetInput(bits ginput.InputBits, who ...CanOperate) {
+func SetInput(bits ginput.InputBits, who ...Objects) {
 	for _, x := range who {
 		for i := 0; i < x.Len(); i++ {
-			x.SetInput(i, bits)
+			x[i].SetInput(bits)
 		}
 	}
 }
@@ -247,15 +156,10 @@ func SetInput(bits ginput.InputBits, who ...CanOperate) {
 //########################################
 //# Update
 //########################################
-type Updatable interface {
-	Len() (int)
-	Update(i int, trigger event.Trigger)
-}
-
-func Update(trigger event.Trigger, who ...Updatable) {
+func Update(trigger event.Trigger, who ...Objects) {
 	for _, x := range who {
 		for i := 0; i < x.Len(); i++ {
-			x.Update(i, trigger)
+			x[i].Update(trigger)
 		}
 	}
 }
@@ -280,17 +184,10 @@ func Script(input script.Input, output event.Trigger, who ...HasScript) {
 //########################################
 //# HitRect
 //########################################
-type CanHit interface {
-	Len() (int)
-	HitRects(int) ([]fig.Rect)
-	Hit(int, Interface)
-	GetObject(int) (Interface)
-}
-
 func IsHit(a, b []fig.Rect) (bool) {
 	for i, _ := range a {
 		for j, _ := range b {
-			if a[i].Hit(&b[j]) {
+			if a[i].Hit(b[j]) {
 				return true
 			}
 		}
@@ -298,25 +195,25 @@ func IsHit(a, b []fig.Rect) (bool) {
 	return false
 }
 
-func HitCheck(subjective CanHit, objective ...CanHit) {
+func HitCheck(subjective Objects, objective ...Objects) {
 	for a := 0; a < subjective.Len(); a++ {
 		for _, objs := range objective{
 			for b := 0; b < objs.Len(); b++ {
-				if IsHit(subjective.HitRects(a), objs.HitRects(b)) {
-					subjective.Hit(a, objs.GetObject(b))
-					objs.Hit(b, subjective.GetObject(a))
+				if IsHit(subjective[a].HitRects(), objs[b].HitRects()) {
+					subjective[a].Hit(objs[b])
+					objs[b].Hit(subjective[a])
 				}
 			}
 		}
 	}
 }
 
-func UniHitCheck(subjective CanHit, objective ...CanHit) {
+func UniHitCheck(subjective Objects, objective ...Objects) {
 	for a := 0; a < subjective.Len(); a++ {
 		for _, objs := range objective{
 			for b := 0; b < objs.Len(); b++ {
-				if IsHit(subjective.HitRects(a), objs.HitRects(b)) {
-					subjective.Hit(a, objs.GetObject(b))
+				if IsHit(subjective[a].HitRects(), objs[b].HitRects()) {
+					subjective[a].Hit(objs[b])
 				}
 			}
 		}
@@ -334,36 +231,31 @@ type LawsOfPhisics interface {
 	GetObject(int) (Interface)
 	Expel(int, []fig.Rect)
 }
-func HitWall(subjective LawsOfPhisics, allWalls ...CanHit) {
+func HitWall(subjective Objects, allWalls ...Objects) {
 	hitWalls := []fig.Rect{}
 	for a := 0; a < subjective.Len(); a++ {
 		for _, walls := range allWalls {
 			for b := 0; b < walls.Len(); b++ {
-				if IsHit(subjective.HitRects(a), walls.HitRects(b)) {
-					subjective.HitWall(a, walls.GetObject(b))
-					walls.Hit(b, subjective.GetObject(a))
-					hitWalls = append(hitWalls, walls.HitRects(b)...)
+				if IsHit(subjective[a].HitRects(), walls[b].HitRects()) {
+					subjective[a].HitWall(walls[b])
+					walls[b].Hit(subjective[a])
+					hitWalls = append(hitWalls, walls[b].HitRects()...)
 				}
 			}
 		}
 	}
 	for i := 0; i < subjective.Len(); i++ {
-		subjective.Expel(i, hitWalls)
+		subjective[i].Expel(hitWalls)
 	}
 }
 
 //########################################
 //# OutScreen
 //########################################
-type InTheScreen interface {
-	Len() (int)
-	GetObject(i int) (Interface)
-	SetPoint(int, fig.Point)
-}
-func InScreen(inner fig.Rect, who ...InTheScreen) {
+func InScreen(inner fig.Rect, who ...Objects) {
 	for _, v := range who {
 		for i := 0; i < v.Len(); i++ {
-			pt := v.GetObject(i).GetPoint()
+			pt := v[i].GetPoint()
 			x := pt.X
 			y := pt.Y
 			if x < inner.Left {
@@ -378,7 +270,7 @@ func InScreen(inner fig.Rect, who ...InTheScreen) {
 			if y > inner.Bottom {
 				pt.Y = inner.Bottom
 			}
-			v.SetPoint(i, pt)
+			v[i].SetPoint(pt)
 		}
 	}
 }
@@ -386,16 +278,11 @@ func InScreen(inner fig.Rect, who ...InTheScreen) {
 //########################################
 //# OutScreen
 //########################################
-type InTheWorld interface {
-	Len() (int)
-	GetObject(int) (Interface)
-	Vanish(int)
-}
-func GoOutside(outer fig.Rect, who ...InTheWorld) {
+func GoOutside(outer fig.Rect, who ...Objects) {
 	for _, x := range who {
 		for i := 0; i < x.Len(); i++ {
-			if !outer.In(x.GetObject(i).GetPoint()) {
-				x.Vanish(i)
+			if !outer.In(x[i].GetPoint()) {
+				x[i].Vanish()
 			}
 		}
 	}
@@ -404,57 +291,19 @@ func GoOutside(outer fig.Rect, who ...InTheWorld) {
 //########################################
 //# Clean
 //########################################
-type Disposer interface {
-	Len() (int)
-	Clean(i int)
-}
-func Clean(who ...Disposer) {
-	for _, x := range who {
-		for i := 0; i < x.Len(); i++ {
-			x.Clean(i)
+func Clean(objs Objects) (Objects) {
+	res := Objects{}
+	for _, o := range objs {
+		if !o.IsVanish() {
+			res = append(res, o)
 		}
 	}
+	return res
 }
 
-//########################################
-//# ExtraDraw
-//########################################
-type OneSprites struct {
-	SX0, SY0, SX1, SY1 int
-	DX0, DY0, DX1, DY1 int
-}
-
-func (me *OneSprites) Len() (int) {
-	return 1
-}
-
-func (me *OneSprites) Dst(i int) (x0, y0, x1, y1 int) {
-	return me.DX0, me.DY0, me.DX1, me.DY1
-}
-
-func (me *OneSprites) Src(i int) (x0, y0, x1, y1 int) {
-	return me.SX0, me.SY0, me.SX1, me.SY1
-}
-
-func NewOneSprites(sx0, sy0, sx1, sy1, dx0, dy0, dx1, dy1 int) (*OneSprites) {
-	res := OneSprites{
-		sx0, sy0, sx1, sy1,
-		dx0, dy0, dx1, dy1,
+func DrawOptions(objs Objects) (*ebiten.DrawImageOptions) {
+	return &ebiten.DrawImageOptions {
+		ImageParts: objs,
 	}
-	return &res;
 }
 
-type ExDrawer interface {
-	Len() (int)
-	DrawOption(i int) (*ebiten.DrawImageOptions)
-}
-func ExDraw(screen, source *ebiten.Image, who ...ExDrawer) (error) {
-	for _, x := range who {
-		for i := 0; i < x.Len(); i++ {
-			if err := screen.DrawImage(source, x.DrawOption(i)); err != nil {
-				return err
-			}
-		}
-	}
-	return nil
-}

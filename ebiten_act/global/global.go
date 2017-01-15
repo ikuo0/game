@@ -2,8 +2,9 @@
 package global
 
 import (
-	"github.com/ikuo0/game/ebiten_act/action"
-	"github.com/ikuo0/game/lib/fig"
+	//"github.com/ikuo0/game/ebiten_act/action"
+	"github.com/ikuo0/game/ebiten_act/dbgrect"
+	//"github.com/ikuo0/game/lib/fig"
 	"github.com/ikuo0/game/lib/ginput"
 	"github.com/ikuo0/game/lib/log"
 	"github.com/ikuo0/game/lib/sound"
@@ -31,40 +32,7 @@ func FlagPrintln(args ...interface{}) {
 	}
 }
 
-//########################################
-//# RectDebug
-//########################################
-type RectDebugSt struct {
-	Rects []fig.Rect
-}
-
-func (me *RectDebugSt) Clear() {
-	me.Rects = nil
-}
-
-func (me *RectDebugSt) Append(rects ...fig.Rect) {
-	for _, v := range rects {
-		me.Rects = append(me.Rects, v)
-	}
-}
-
-func (me RectDebugSt) Len() (int) {
-	return len(me.Rects)
-}
-
-func (me RectDebugSt) Hit(i int, obj action.Interface) {
-}
-
-func (me RectDebugSt) GetObject(i int) (action.Interface) {
-	return nil
-}
-
-func (me RectDebugSt) HitRects(i int) ([]fig.Rect) {
-	return []fig.Rect{me.Rects[i]}
-}
-
-
-var RectDebug RectDebugSt
+var RectDebug dbgrect.DebugRect
 
 //########################################
 //# Path

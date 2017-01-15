@@ -51,6 +51,8 @@ func main() {
 	global.SetRootPath(path.Dir(os.Args[0]))
 	log.Start(global.Path().File(`log.txt`))
 	sound.Initialize(global.SampleRate, 20, 20)
+	log.Log("main#1")
 	sceneChanger.Apply([]string{"initialize"})
+	log.Log("main#2")
 	ebiten.Run(update, 800, 600, 1, "EBITEN ACT")
 }

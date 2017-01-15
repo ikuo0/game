@@ -93,26 +93,26 @@ type Stage1 struct {
 	GameStatus       global.GameStatus
 	Frame            int
 
-	Player           *action.Objects
+	Player           action.Objects
 	PlayerImage      *ebiten.Image
 	PlayerEntity     *player.Player
 
-	Shot             *action.Objects
+	Shot             action.Objects
 	ShotImage        *ebiten.Image
 
-	Block            *action.Objects
+	Block            action.Objects
 	BlockImage       *ebiten.Image
 
-	OccureBlock      *action.Objects
+	OccureBlock      action.Objects
 	OccureBlockImage *ebiten.Image
 
-	Enemy            *action.Objects
+	Enemy            action.Objects
 	EnemyImage       *ebiten.Image
 
-	Explosion1        *action.Objects
+	Explosion1        action.Objects
 	Explosion1Image   *ebiten.Image
 
-	Vortex           *action.Objects
+	Vortex           action.Objects
 	VortexImage      *ebiten.Image
 
 	HitImage         *ebiten.Image
@@ -190,7 +190,12 @@ func (me *Stage1) Update() {
 		action.HitWall(me.Enemy, me.Block, me.OccureBlock)
 		action.InScreen(me.Inner, me.Player)
 		action.GoOutside(me.Outer, me.Player, me.Shot, me.Enemy)
-		action.Clean(me.Player, me.Shot, me.Enemy, me.Explosion1, me.Vortex)
+
+		me.Player = action.Clean(me.Player)
+		me.Shot = action.Clean(me.Shot)
+		me.Enemy = action.Clean(me.Enemy)
+		me.Explosion1 = action.Clean(me.Explosion1)
+		me.Vortex = action.Clean(me.Vortex)
 
 		if me.Vortex.Len() == 0 {
 			me.EventTrigger(eventid.StageClear, nil, nil)
@@ -219,13 +224,13 @@ func (me *Stage1) ObjectCount() (int) {
 }
 
 func (me *Stage1) Draw(screen *ebiten.Image) {
-	screen.DrawImage(me.EnemyImage, me.Enemy.Options())
-	screen.DrawImage(me.BlockImage, me.Block.Options())
-	screen.DrawImage(me.VortexImage, me.Vortex.Options())
-	screen.DrawImage(me.OccureBlockImage, me.OccureBlock.Options())
-	screen.DrawImage(me.PlayerImage, me.Player.Options())
-	screen.DrawImage(me.ShotImage, me.Shot.Options())
-	screen.DrawImage(me.Explosion1Image, me.Explosion1.Options())
+	screen.DrawImage(me.EnemyImage, action.DrawOptions(me.Enemy))
+	screen.DrawImage(me.BlockImage, action.DrawOptions(me.Block))
+	screen.DrawImage(me.VortexImage, action.DrawOptions(me.Vortex))
+	screen.DrawImage(me.OccureBlockImage, action.DrawOptions(me.OccureBlock))
+	screen.DrawImage(me.PlayerImage, action.DrawOptions(me.Player))
+	screen.DrawImage(me.ShotImage, action.DrawOptions(me.Shot))
+	screen.DrawImage(me.Explosion1Image, action.DrawOptions(me.Explosion1))
 
 	me.Template.SetFloat("FrameCount", ebiten.CurrentFPS())
 	me.Template.SetInt("ObjectCount", me.ObjectCount())
@@ -246,7 +251,8 @@ func (me *Stage1) Draw(screen *ebiten.Image) {
 	}
 
 	if me.Debug {
-		hitObjs := action.NewHitObjects(me.Block, me.OccureBlock, me.Shot, me.Enemy, global.RectDebug)
+		dbgRects := action.Objects{&global.RectDebug}
+		hitObjs := action.NewHitObjects(me.Block, me.OccureBlock, me.Shot, me.Enemy, dbgRects)
 		screen.DrawImage(me.HitImage, hitObjs.Options())
 	}
 }
@@ -254,19 +260,23 @@ func (me *Stage1) Draw(screen *ebiten.Image) {
 func (me *Stage1) EventTrigger(id event.Id, argument interface{}, origin orig.Interface) {
 	switch id {
 		case eventid.Block:
-			me.Block.Occure(block.NewBlock(argument.(fig.Point)))
+			//me.Block.Occure(block.NewBlock(argument.(fig.Point)))
+			me.Block = append(me.Block, block.NewBlock(argument.(fig.Point)))
 
 		case eventid.OccureBlock:
-			me.OccureBlock.Occure(block.NewOccureBlock(argument.(block.Config)))
+			//me.OccureBlock.Occure(block.NewOccureBlock(argument.(block.Config)))
+			me.OccureBlock = append(me.OccureBlock, block.NewOccureBlock(argument.(block.Config)))
 
 		case eventid.Player:
 			me.PlayerEntity = player.New(argument.(fig.Point))
-			me.Player.Occure(me.PlayerEntity)
+			//me.Player.Occure(me.PlayerEntity)
+			me.Player = append(me.Player, me.PlayerEntity)
 
 		case eventid.Shot:
 			me.Sound.Shot.Play(0)
 			o := argument.(orig.Interface)
-			me.Shot.Occure(shot.New(o.GetPoint(), o.Direction()))
+			//me.Shot.Occure(shot.New(o.GetPoint(), o.Direction()))
+			me.Shot = append(me.Shot, shot.New(o.GetPoint(), o.Direction()))
 
 		case eventid.Jump:
 			me.Sound.Jump.Play(0)
@@ -279,16 +289,19 @@ func (me *Stage1) EventTrigger(id event.Id, argument interface{}, origin orig.In
 
 		case eventid.Enemy:
 			setting := argument.(funcs.EnemyConfig)
-			me.Enemy.Occure(enemy.New(setting))
+			//me.Enemy.Occure(enemy.New(setting))
+			me.Enemy = append(me.Enemy, enemy.New(setting))
 
 		case eventid.Explosion1:
 			me.Sound.Explosion.Play(0)
 			pt := argument.(fig.Point)
-			me.Explosion1.Occure(explosion.NewExplosion1(pt))
+			//me.Explosion1.Occure(explosion.NewExplosion1(pt))
+			me.Explosion1 = append(me.Explosion1, explosion.NewExplosion1(pt))
 
 		case eventid.Vortex:
 			pt := argument.(fig.Point)
-			me.Vortex.Occure(vortex.New(pt))
+			//me.Vortex.Occure(vortex.New(pt))
+			me.Vortex = append(me.Vortex, vortex.New(pt))
 
 /*
 		case eventid.PlayerDied:

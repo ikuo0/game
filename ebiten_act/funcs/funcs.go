@@ -84,7 +84,7 @@ func (me *FallingRects) HitFloor(pt fig.Point, descend bool, walls []fig.Rect) (
 		for _, w := range walls {
 			head := me.Head.Relative(pt)
 			//global.RectDebug.Append(head)
-			if head.Hit(&w) {
+			if head.Hit(w) {
 				status |= FloorTop
 				pt.Y += w.Bottom - head.Top
 			}
@@ -94,7 +94,7 @@ func (me *FallingRects) HitFloor(pt fig.Point, descend bool, walls []fig.Rect) (
 	for _, w := range walls {
 		body := me.Body.Relative(pt)
 		global.RectDebug.Append(body)
-		if body.Hit(&w) {
+		if body.Hit(w) {
 			if body.Center().X > w.Center().X {
 				status |= FloorLeft
 				pt.X += w.Right - body.Left
@@ -110,7 +110,7 @@ func (me *FallingRects) HitFloor(pt fig.Point, descend bool, walls []fig.Rect) (
 			foot := me.Foot.Relative(pt)
 			global.RectDebug.Append(foot)
 			//global.RectDebug.Append(foot)
-			if foot.Hit(&w) {
+			if foot.Hit(w) {
 				status |= FloorBottom
 				pt.Y -= (foot.Bottom - w.Top)
 			}
